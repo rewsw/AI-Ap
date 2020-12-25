@@ -235,6 +235,7 @@ namespace WindowsFormsApp4
         List<Touch_point> Alternative = new List<Touch_point>();
         List<save_frame> save_frames = new List<save_frame>();
         List<area> area_size_set = new List<area>();
+
         void callback_method(Socket sc)
         {
             Stopwatch sw = new Stopwatch();
@@ -261,6 +262,7 @@ namespace WindowsFormsApp4
                 List<Touch_point> frame = new List<Touch_point>();
                 int label = 2;
                 area_size_set.Clear();
+
                 for (int i = 0; i < r; ++i)
                 {
                     for (int j = 0; j < c; ++j)
@@ -271,11 +273,12 @@ namespace WindowsFormsApp4
                             List<short> ans = get_arround(ref data, i, j);
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
+                            
                             double[] output_ori = supervised_ori.calculate(ans.ToArray());
 
-                            ans.RemoveAt(25);
-
+                           
                             score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
+                            
                             #region Caluate Area
                             if (data[i, j].area_label == 1) //caluate area if is label == 1
                             {
@@ -291,24 +294,25 @@ namespace WindowsFormsApp4
                             #endregion
 
                             ans = get_arround(ref data, i, j);
-                            #region Original
+
+                            #region Original if else decisde
                             if (output_ori[0] <= 0.1) //Just Water
                             {
                                 class_array[3, 0]++;
                                 class_array[4, 0]++;
                                 data[i, j].Class = Sensor_data.AI_class.Water;
                             }
-
                             else if (output_ori[0] > 0.1 && output_ori[0] <= 0.9) //Fuzzy Region
                             {
-                                #region area >20 Just Water
+                                
                                 if (area.size > 20) //if area > 20
                                 {
+                                    #region area >20 Just Water
                                     class_array[5, 0]++;
                                     class_array[3, 0]++;
                                     data[i, j].Class = Sensor_data.AI_class.Water;
+                                    #endregion
                                 }
-                                #endregion
                                 else
                                 {
                                     double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
@@ -343,6 +347,22 @@ namespace WindowsFormsApp4
                                                 H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                     bevel_edge_lenght)); //存檔
                                                 have_peak = true;
+                                                bool have_parent = false; //看看是否有找到關係
+
+                                                for (int k = 0; k < Alternative.Count; k++)
+                                                {
+                                                    if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                                    {
+                                                        have_parent = true;
+                                                        Alternative[k].update(j, i, i, j, output_ori[0]);
+                                                        Alternative[k].have_child = true; //這一次有找到小孩
+                                                        break;
+                                                    }
+                                                }
+                                                if (!have_parent)// 新小孩
+                                                {
+                                                    Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                                }
                                             }
                                         }
                                         else //if NN <0.7
@@ -378,6 +398,22 @@ namespace WindowsFormsApp4
                                                     H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                        bevel_edge_lenght));
                                                     have_peak = true;
+                                                    bool have_parent = false; //看看是否有找到關係
+
+                                                    for (int k = 0; k < Alternative.Count; k++)
+                                                    {
+                                                        if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                                        {
+                                                            have_parent = true;
+                                                            Alternative[k].update(j, i, i, j, output_ori[0]);
+                                                            Alternative[k].have_child = true; //這一次有找到小孩
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!have_parent)// 新小孩
+                                                    {
+                                                        Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                                    }
                                                 }
                                             }
                                         }
@@ -394,8 +430,25 @@ namespace WindowsFormsApp4
                                 H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                     0));
                                 have_peak = true;
+                                bool have_parent = false; //看看是否有找到關係
+
+                                for (int k = 0; k < Alternative.Count; k++)
+                                {
+                                    if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                    {
+                                        have_parent = true;
+                                        Alternative[k].update(j, i, i, j, output_ori[0]);
+                                        Alternative[k].have_child = true; //這一次有找到小孩
+                                        break;
+                                    }
+                                }
+                                if (!have_parent)// 新小孩
+                                {
+                                    Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                }
                             }
                             #endregion
+                           
                             supervised_num++; // peak number 
                         }
                     }
@@ -404,6 +457,40 @@ namespace WindowsFormsApp4
                 {
                     save_frames.Add(new save_frame(H.ToArray(), nH.ToArray(), data_csv.ToArray()));
                     have_peak = false;
+                }
+                for (int i = Alternative.Count - 1; i >= 0; i--) //報點條件 sucessful >=2
+                {
+                    if (Alternative[i].all_time == 0) //新小孩
+                    {
+
+                    }
+                    else if (Alternative[i].all_time != 0)
+                    {
+                        if (Alternative[i].have_child)//看看這次有無找到後代
+                        {
+                            if (Alternative[i].sucessful >= 2)
+                            {
+                                Alternative[i].can_out = true;
+                                Alternative[i].add_point_to_list(new Point(p_w * Alternative[i].X + p_w / 2, p_h * Alternative[i].Y + p_h / 2));
+
+                            }
+                        }
+                        else //沒找到後代的話
+                        {
+                            Alternative[i].interval_time++;
+                            if (Alternative[i].can_out)
+                            {
+                                Alternative[i].add_point_to_list(new Point(p_w * Alternative[i].X + p_w / 2, p_h * Alternative[i].Y + p_h / 2));
+                            }
+                            if (Alternative[i].interval_time > 1) //間隔一次都沒有後代
+                            {
+                                Alternative.RemoveAt(i);
+                                continue;
+                            }
+                        }
+                    }
+                    Alternative[i].have_child = false;
+                    Alternative[i].all_time++;
                 }
                 double fps = sw.ElapsedMilliseconds;
                 try
@@ -430,6 +517,7 @@ namespace WindowsFormsApp4
                 {
 
                 }
+
                 pictureBox1.Invalidate();
             }
         }
@@ -813,11 +901,11 @@ namespace WindowsFormsApp4
                         }
                        
                     }
-                    for (int i = 0; i < 256; i++)
-                    {
-                        g.DrawRectangle(new Pen(Node.GrayTonew_color_V(i)), new Rectangle(10, 30 + i * 2, 20, 2));
+                    //for (int i = 0; i < 256; i++)
+                    //{
+                    //    g.DrawRectangle(new Pen(Node.GrayTonew_color_V(i)), new Rectangle(10, 30 + i * 2, 20, 2));
 
-                    }
+                    //}
 
                     break;
                 default:
@@ -882,6 +970,7 @@ namespace WindowsFormsApp4
                     }
                     break;
                 case state.draw:
+
                     break;
                 default:
                     break;
