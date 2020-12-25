@@ -8,7 +8,7 @@ namespace WindowsFormsApp4
 {
    public class csv_class
     {
-        public static void WriteCVS(ref StreamWriter swd, string fileName,int x,int y,int frame_id, short[] data) //for_榮創的
+        public static void WriteCVS(ref StreamWriter swd, string fileName,int x,int y,int frame_id, short[] data) //收集訓練資料用途
         {
 
            
@@ -22,6 +22,20 @@ namespace WindowsFormsApp4
             sbd.Append(data[data.Length - 1]);
             swd.WriteLine(sbd);
            
+        }
+        public static void WriteCVS(ref StreamWriter swd,Form1.Save_data Data) 
+        {
+            StringBuilder sbd = new StringBuilder();
+
+            sbd.Append(Data.frame_id).Append(",").Append(Data.x).Append(",").Append(Data.y).Append(",");
+            for (int i = 0; i < Data.data_7x7.Length; i++)
+            {
+                sbd.Append(Data.data_7x7[i]).Append(",");
+            }
+            sbd.Append(Data.area).Append(",").Append(Data.lenght).Append(",").Append(Data.second_area);
+            swd.WriteLine(sbd);
+            swd.Flush();
+            Console.WriteLine(Data.frame_id);
         }
     }
 }

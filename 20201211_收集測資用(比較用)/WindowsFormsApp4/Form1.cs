@@ -22,27 +22,13 @@ namespace WindowsFormsApp4
         {
             Normal, draw
         }
-        public struct save_format
-        {
-            public short[] data;
-            public Point position;
-            public int frame_id;
-            public save_format(short[] data, Point position, int frame_id)
-            {
-                this.data = data;
-                this.position = position;
-                this.frame_id = frame_id;
-            }
-        }
+        
         public struct save_frame
         {
-            public Save_data[] H, NH;
-            public save_format[] data;
-            public save_frame(Save_data[] H, Save_data[] NH, save_format[] data)
+            public Save_data[] Area;
+            public save_frame(Save_data[] Area)
             {
-                this.H = H;
-                this.NH = NH;
-                this.data = data;
+                this.Area = Area;
             }
         }
         public struct Vector3
@@ -60,18 +46,23 @@ namespace WindowsFormsApp4
         Color[] Rand_color = new Color[100];
         public struct Save_data
         {
-            public short[] data;
-            public string folder_name;
+            public short[] data_7x7;
+            public int frame_id;
             public string path;
             public int area;
             public double lenght;
-            public Save_data(short[] data, string folder_name, string path,int area, double lenght)
+            public int x, y;
+            public int second_area;
+            public Save_data(short[] data_7x7, int frame_id, string path,int area, double lenght,int x,int y,int second_area)
             {
-                this.folder_name = folder_name;
+                this.frame_id = frame_id;
                 this.path = path;
-                this.data = data;
+                this.data_7x7 = data_7x7;
                 this.area = area;
                 this.lenght = lenght;
+                this.x = x;
+                this.y = y;
+                this.second_area = second_area;
             }
         }
         public struct area
@@ -100,12 +91,12 @@ namespace WindowsFormsApp4
         int[,] class_array = new int[,] { { 0, 0, 0 },{0,0,0 },{0,0,0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         int[,] score_range = new int[,] { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
         StreamWriter csv_swriter;
-        string data_csv_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\data.csv";
+        string data_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\";
         bool update_size = false;
         int frame_id = 0;
         AI supervised_ori,supervised_Hao_one,supervised_Hao_two;
         DataTable dt;
-        string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString()+"_"+DateTime.Now.Hour+"_"+DateTime.Now.Minute+ "\\H";
+        string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString()+"_"+DateTime.Now.Hour+"_"+DateTime.Now.Minute+ "\\Picture";
         string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString()+ "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH";
         public Form1()
         {
@@ -217,13 +208,13 @@ namespace WindowsFormsApp4
             Directory.CreateDirectory(nH_save_path);
             Directory.CreateDirectory(H_save_path);
 #region 新創csv
-            FileStream fs = new FileStream(data_csv_path, FileMode.Create, FileAccess.Write);
+            FileStream fs = new FileStream(data_path+"data.csv", FileMode.Create, FileAccess.Write);
             StreamWriter sw = new StreamWriter(fs);
             sw.Flush();
             sw.Close();
             fs.Close();
 #endregion
-            csv_swriter = new StreamWriter(data_csv_path, true);
+            csv_swriter = new StreamWriter(data_path + "data.csv", true);
             save_t = new Thread(new ThreadStart(save_picture));
             save_t.Start();
         }
@@ -237,6 +228,7 @@ namespace WindowsFormsApp4
         List<area> area_size_set = new List<area>();
         void callback_method(Socket sc)
         {
+            int frame_number = 0;
             Stopwatch sw = new Stopwatch();
             while (true)
             {
@@ -245,8 +237,7 @@ namespace WindowsFormsApp4
                 int dataLength;
                 byte[] myBufferBytes = new byte[100000];
                 dataLength = sc.Receive(myBufferBytes);
-                List<save_format> data_csv = new List<save_format>();// 存所有的 peak
-   
+                frame_number++;
                 int now_r = 0,now_c = 0;
                 for(int i = 0; i < dataLength; i=i+2)
                 {
@@ -256,9 +247,7 @@ namespace WindowsFormsApp4
                     now_c = (now_c == 45) ? 0 : now_c + 1;
                 }
                 frame_id++;
-                List<Save_data> H = new List<Save_data>();
-                List<Save_data> nH = new List<Save_data>();
-                List<Touch_point> frame = new List<Touch_point>();
+                List<Save_data> sl = new List<Save_data>();
                 int label = 2;
                 area_size_set.Clear();
                 for (int i = 0; i < r; ++i)
@@ -270,16 +259,7 @@ namespace WindowsFormsApp4
                            
                             List<short> ans = get_arround(ref data, i, j);
                             area area = new area(0);
-                            int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
-                            double[] output_ori = supervised_ori.calculate(ans.ToArray());
-                            Console.WriteLine(output_ori[0]);
-                            ans.Add((short)is_edge);
-                            double[] output_Hao_two = supervised_Hao_two.calculate(ans.ToArray());
-                            ans.RemoveAt(25);
-
-                            score_range[0,(output_Hao_two[0] * 10 >= 10) ? 9 : (int)(output_Hao_two[0] * 10)]++;
-                            score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
-                            #region Caluate Area
+                 
                             if (data[i, j].area_label == 1) //caluate area if is label == 1
                             {
 
@@ -291,130 +271,18 @@ namespace WindowsFormsApp4
                             {
                                 area = area_size_set[data[i, j].area_label - 2];
                             }
-                            #endregion
-
-                            ans = get_arround(ref data, i, j);
-                            #region Original
-                            if (output_ori[0] <= 0.1) //Just Water
-                            {
-                                class_array[3, 0]++;
-                                class_array[4, 0]++;
-                                data[i, j].Class = Sensor_data.AI_class.Water;
-                            }
-
-                            else if (output_ori[0] > 0.1 && output_ori[0] <= 0.9) //Fuzzy Region
-                            {
-                                #region area >20 Just Water
-                                if (area.size > 20) //if area > 20
-                                {
-                                    class_array[5, 0]++;
-                                    class_array[3, 0]++;
-                                    data[i, j].Class = Sensor_data.AI_class.Water;
-                                }
-                                #endregion
-                                else
-                                {
-                                    double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
-                                    if (bevel_edge_lenght > 7.07) //Sencond check caluate bevel edge lenght if >7.07 
-                                    {
-                                        class_array[5, 0]++;
-                                        class_array[3, 0]++;
-                                        data[i, j].Class = Sensor_data.AI_class.Water;
-                                        nH.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), nH_save_path, area.size,
-                                                     bevel_edge_lenght));//存檔
-                                    }
-                                    else
-                                    {
-                                        if (output_ori[0] >= 0.7) // Third Check if NN output >0.7
-                                        {
-                                            int second_area = 0;
-                                            int sum = get_Negative_value(ref ans, ref second_area); //check its 5x5 arround Negative sum
-                                            if (sum < -20)
-                                            {
-                                                class_array[5, 0]++;
-                                                class_array[3, 0]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                                nH.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), nH_save_path, area.size,
-                                                     bevel_edge_lenght));//存檔
-                                              //  Console.WriteLine("sum1  : " + sum + " " + supervised_num);
-                                            }
-                                            else
-                                            {
-                                                class_array[5, 2]++;
-                                                class_array[3, 2]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
-                                                    bevel_edge_lenght)); //存檔
-                                                have_peak = true;
-                                            }
-                                        }
-                                        else //if NN <0.7
-                                        {
-                                            ans = get_arround7x7(ref data, i, j); // check its 7x7 arround Negaive sum
-                                            int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
-                                            int sum = get_Negative_value(ref ans, ref second_area);
-                                            if (sum < -40)
-                                            {
-                                                class_array[5, 0]++;
-                                                class_array[3, 0]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                                nH.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), nH_save_path, area.size,
-                                                     bevel_edge_lenght));//存檔
-                                              //  Console.WriteLine("sum : " + sum + " "+ supervised_num);
-                                            }
-                                            else
-                                            {
-                                                if (second_area > 25)
-                                                {//if second_area>20 is water
-                                                    class_array[5, 0]++;
-                                                    class_array[3, 0]++;
-                                                    data[i, j].Class = Sensor_data.AI_class.Water;
-                                                    nH.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), nH_save_path, area.size,
-                                                  bevel_edge_lenght));//存檔
-                                                 //   Console.WriteLine("second area : " + second_area + " " + supervised_num);
-                                                }
-                                                else
-                                                {
-                                                    class_array[5, 2]++;
-                                                    class_array[3, 2]++;
-                                                    data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                    H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_Hao_two[0].ToString("F2"), H_save_path, area.size,
-                                                       bevel_edge_lenght));
-                                                    have_peak = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }//Just Hand
-                            else
-                            {
-                                int second_area = 0;
-                                int sum = get_Negative_value(ref ans, ref second_area);
-                                //if (sum < -10)
-                                //{
-                                //    class_array[5, 0]++;
-                                //    class_array[3, 0]++;
-                                //    data[i, j].Class = Sensor_data.AI_class.Water;
-                                //}
-                                //else
-                                //{
-                                    class_array[4, 2]++;
-                                    class_array[3, 2]++;
-                                    data[i, j].Class = Sensor_data.AI_class.Hand;
-                                    H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_Hao_two[0].ToString("F2"), H_save_path, area.size,
-                                                       0));
-                                    have_peak = true;
-                              //  }
-                            }
-                            #endregion
-                            supervised_num++; // peak number 
+                            double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
+                            ans = get_arround7x7(ref data, i, j);
+                            int second_area = 0;
+                            int sum = get_Negative_value(ref ans, ref second_area);
+                            sl.Add(new Save_data(ans.ToArray(), frame_id, data_path+"Picture", area.size, bevel_edge_lenght, j, i, second_area));
+                            have_peak = true;
                         }
                     }
                 }
                 if (have_peak)
                 {
-                    save_frames.Add(new save_frame(H.ToArray(), nH.ToArray(), data_csv.ToArray()));
+                    save_frames.Add(new save_frame(sl.ToArray()));
                     have_peak = false;
                 }
                 double fps = sw.ElapsedMilliseconds;
@@ -422,20 +290,7 @@ namespace WindowsFormsApp4
                 {
                     BeginInvoke(new MethodInvoker(() =>
                     {
-                        for(int i = 0; i < 10; i++)
-                        {
-                            dataGridView1.Rows[i + 1].Cells[1].Value = score_range[0,i];
-                            dataGridView1.Rows[i + 1].Cells[2].Value = score_range[1, i];
-                        }
-                        for(int i = 0; i < 6; i++)
-                        {
-                            for(int j = 0; j < 3; j++)
-                            {
-
-                                dataGridView2.Rows[1+i].Cells[j+1].Value = class_array[i, j];
-
-                            }
-                        }
+                       
                     }));
                 }
                 catch (InvalidOperationException ex)
@@ -495,18 +350,15 @@ namespace WindowsFormsApp4
                 {
                     try
                     {
-                        //for (int i = 0; i < save_frames[0].data.Length; i++)
-                        //{
-                        //    csv_class.WriteCVS(ref csv_swriter, data_csv_path, save_frames[0].data[i].position.X, save_frames[0].data[i].position.Y, save_frames[0].data[i].frame_id, save_frames[0].data[i].data);
-                        //}
-                        for (int i = 0; i < save_frames[0].H.Length; i++)
+                        for(int i = 0; i < save_frames[0].Area.Length; i++)
                         {
-                            Node.save_arround(save_frames[0].H[i].data,save_frames[0].H[0]);
+                            csv_class.WriteCVS(ref csv_swriter, save_frames[0].Area[i]);
                         }
-                        for (int i = 0; i < save_frames[0].NH.Length; i++)
+                        for (int i = 0; i < save_frames[0].Area.Length; i++)
                         {
-                            Node.save_arround(save_frames[0].NH[i].data, save_frames[0].NH[0]);
+                            Node.save_arround(save_frames[0].Area[i].data_7x7,save_frames[0].Area[i]);
                         }
+                       
                         save_frames.RemoveAt(0);
                     }catch(NullReferenceException ex)
                     {
@@ -764,6 +616,12 @@ namespace WindowsFormsApp4
             }
             pic2_size = new Size(pic1_size.Width, pic1_size.Height);
             //  pictureBox1.Invalidate();
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            csv_swriter.Flush();
+            csv_swriter.Close();
         }
 
         private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
