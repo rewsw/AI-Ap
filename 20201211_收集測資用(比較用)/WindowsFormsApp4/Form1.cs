@@ -200,8 +200,8 @@ namespace WindowsFormsApp4
             dataGridView2.Rows[6].Height = dataGridView2.Height / 7 - 1;
 
             dataGridView2.Rows[0].Cells[1].Value = "水";
-            dataGridView2.Rows[0].Cells[2].Value = "不定";
-            dataGridView2.Rows[0].Cells[3].Value = "手";
+            dataGridView2.Rows[0].Cells[2].Value = "手";
+            dataGridView2.Rows[0].Cells[3].Value = "輸出";
             
             dataGridView2.Rows[1].Cells[0].Value = "數量(new)";
             dataGridView2.Rows[2].Cells[0].Value = "<0.1 or >0.9";
@@ -341,8 +341,8 @@ namespace WindowsFormsApp4
                                             }
                                             else
                                             {
-                                                class_array[5, 2]++;
-                                                class_array[3, 2]++;
+                                                class_array[5, 1]++;
+                                                class_array[3, 1]++;
                                                 data[i, j].Class = Sensor_data.AI_class.Hand;
                                                 H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                     bevel_edge_lenght)); //存檔
@@ -392,8 +392,8 @@ namespace WindowsFormsApp4
                                                 }
                                                 else
                                                 {
-                                                    class_array[5, 2]++;
-                                                    class_array[3, 2]++;
+                                                    class_array[5, 1]++;
+                                                    class_array[3, 1]++;
                                                     data[i, j].Class = Sensor_data.AI_class.Hand;
                                                     H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                        bevel_edge_lenght));
@@ -424,8 +424,8 @@ namespace WindowsFormsApp4
                             {
                                 int second_area = 0;
                                 int sum = get_Negative_value(ref ans, ref second_area);
-                                class_array[4, 2]++;
-                                class_array[3, 2]++;
+                                class_array[4, 1]++;
+                                class_array[3, 1]++;
                                 data[i, j].Class = Sensor_data.AI_class.Hand;
                                 H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                     0));
@@ -472,13 +472,14 @@ namespace WindowsFormsApp4
                             {
                                 Alternative[i].can_out = true;
                                 Alternative[i].add_point_to_list(new Point(p_w * Alternative[i].X + p_w / 2, p_h * Alternative[i].Y + p_h / 2));
-
+                                
+                                class_array[3, 2]++;
                             }
                         }
                         else //沒找到後代的話
                         {
                             Alternative[i].interval_time++;
-                            if (Alternative[i].can_out)
+                            if (Alternative[i].can_out) //已經先出頭過的 再來檢查看看手有無放開
                             {
                                 Alternative[i].add_point_to_list(new Point(p_w * Alternative[i].X + p_w / 2, p_h * Alternative[i].Y + p_h / 2));
                             }
