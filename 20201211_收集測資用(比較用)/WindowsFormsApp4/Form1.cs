@@ -111,8 +111,8 @@ namespace WindowsFormsApp4
         int frame_id = 0;
         AI supervised_ori, supervised_Hao_one, supervised_Hao_two;
         DataTable dt;
-        string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\H\\";
-        string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH\\";
+        string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\H";
+        string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH";
         public Form1()
         {
             #region color initialize
@@ -341,7 +341,6 @@ namespace WindowsFormsApp4
                                                 class_array[3, 0]++;
                                                 data[i, j].Class = Sensor_data.AI_class.Water;
                                                 nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
-                                                //  Console.WriteLine("sum1  : " + sum + " " + supervised_num);
                                             }
                                             else
                                             {
@@ -349,7 +348,7 @@ namespace WindowsFormsApp4
                                                 class_array[3, 1]++;
                                                 data[i, j].Class = Sensor_data.AI_class.Hand;
                                                 H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
-                                                have_peak = true;
+                                    
                                                 bool have_parent = false; //看看是否有找到關係
 
                                                 for (int k = 0; k < Alternative.Count; k++)
@@ -379,7 +378,7 @@ namespace WindowsFormsApp4
                                                 class_array[3, 0]++;
                                                 data[i, j].Class = Sensor_data.AI_class.Water;
                                                 nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                                //  Console.WriteLine("sum : " + sum + " "+ supervised_num);
+                  
                                             }
                                             else
                                             {
@@ -389,7 +388,7 @@ namespace WindowsFormsApp4
                                                     class_array[3, 0]++;
                                                     data[i, j].Class = Sensor_data.AI_class.Water;
                                                     nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                                    //   Console.WriteLine("second area : " + second_area + " " + supervised_num);
+                                                  
                                                 }
                                                 else
                                                 {
@@ -397,7 +396,7 @@ namespace WindowsFormsApp4
                                                     class_array[3, 1]++;
                                                     data[i, j].Class = Sensor_data.AI_class.Hand;
                                                     H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                                    have_peak = true;
+                                          
                                                     bool have_parent = false; //看看是否有找到關係
 
                                                     for (int k = 0; k < Alternative.Count; k++)
@@ -428,7 +427,7 @@ namespace WindowsFormsApp4
                                 class_array[3, 1]++;
                                 data[i, j].Class = Sensor_data.AI_class.Hand;
                                 H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, 0, j, i, 0, output_ori[0]));
-                                have_peak = true;
+                              
                                 bool have_parent = false; //看看是否有找到關係
 
                                 for (int k = 0; k < Alternative.Count; k++)
@@ -447,7 +446,7 @@ namespace WindowsFormsApp4
                                 }
                             }
                             #endregion
-
+                            have_peak = true;
 
                         }
                     }
