@@ -272,12 +272,9 @@ namespace WindowsFormsApp4
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
                             double[] output_ori = supervised_ori.calculate(ans.ToArray());
-                            Console.WriteLine(output_ori[0]);
-                            ans.Add((short)is_edge);
-                            double[] output_Hao_two = supervised_Hao_two.calculate(ans.ToArray());
+
                             ans.RemoveAt(25);
 
-                            score_range[0,(output_Hao_two[0] * 10 >= 10) ? 9 : (int)(output_Hao_two[0] * 10)]++;
                             score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
                             #region Caluate Area
                             if (data[i, j].area_label == 1) //caluate area if is label == 1
@@ -378,7 +375,7 @@ namespace WindowsFormsApp4
                                                     class_array[5, 2]++;
                                                     class_array[3, 2]++;
                                                     data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                    H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_Hao_two[0].ToString("F2"), H_save_path, area.size,
+                                                    H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
                                                        bevel_edge_lenght));
                                                     have_peak = true;
                                                 }
@@ -391,21 +388,12 @@ namespace WindowsFormsApp4
                             {
                                 int second_area = 0;
                                 int sum = get_Negative_value(ref ans, ref second_area);
-                                //if (sum < -10)
-                                //{
-                                //    class_array[5, 0]++;
-                                //    class_array[3, 0]++;
-                                //    data[i, j].Class = Sensor_data.AI_class.Water;
-                                //}
-                                //else
-                                //{
-                                    class_array[4, 2]++;
-                                    class_array[3, 2]++;
-                                    data[i, j].Class = Sensor_data.AI_class.Hand;
-                                    H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_Hao_two[0].ToString("F2"), H_save_path, area.size,
-                                                       0));
-                                    have_peak = true;
-                              //  }
+                                class_array[4, 2]++;
+                                class_array[3, 2]++;
+                                data[i, j].Class = Sensor_data.AI_class.Hand;
+                                H.Add(new Save_data(ans.ToArray(), supervised_num.ToString() + "_" + output_ori[0].ToString("F2"), H_save_path, area.size,
+                                                    0));
+                                have_peak = true;
                             }
                             #endregion
                             supervised_num++; // peak number 
