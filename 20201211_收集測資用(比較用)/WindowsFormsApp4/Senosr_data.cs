@@ -79,7 +79,7 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
-                bitmap.Save(string.Format("{0}\\{1}_{2}_({3},{4}).png",s.path,s.frame_id,s.area,s.x,s.y));
+                bitmap.Save(string.Format("{0}{1}_{2}_{3}_{4}_({5},{6}).png", s.path,s.NN_output,s.area,s.lenght.ToString("F2"),s.second_area,s.x,s.y));
             }
             else
             {
@@ -101,7 +101,7 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
-                bitmap.Save(string.Format("{0}\\{1}_{2}_({3},{4}).png", s.path, s.frame_id, s.area, s.x, s.y));
+                bitmap.Save(string.Format("{0}{1}_{2}_{3}_{4}_({5},{6}).png", s.path, s.NN_output, s.area, s.lenght.ToString("F2"), s.second_area, s.x, s.y));
             }
         }
         private static int normailze(int v)
