@@ -79,7 +79,7 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
-                bitmap.Save(s.path + "\\" + s.folder_name.ToString()+"_"+s.lenght.ToString("F2")+"_"+s.area + ".png");
+                bitmap.Save();
             }
             else
             {
