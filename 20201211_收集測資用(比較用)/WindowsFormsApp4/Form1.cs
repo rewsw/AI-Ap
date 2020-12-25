@@ -22,27 +22,13 @@ namespace WindowsFormsApp4
         {
             Normal, draw
         }
-        public struct save_format
-        {
-            public short[] data;
-            public Point position;
-            public int frame_id;
-            public save_format(short[] data, Point position, int frame_id)
-            {
-                this.data = data;
-                this.position = position;
-                this.frame_id = frame_id;
-            }
-        }
+
         public struct save_frame
         {
-            public Save_data[] H, NH;
-  
-            public save_frame(Save_data[] H, Save_data[] NH)
+            public Save_data[] Area;
+            public save_frame(Save_data[] Area)
             {
-                this.H = H;
-                this.NH = NH;
-   
+                this.Area = Area;
             }
         }
         public struct Vector3
@@ -67,8 +53,7 @@ namespace WindowsFormsApp4
             public double lenght;
             public int x, y;
             public int second_area;
-            public double NN_output;
-            public Save_data(short[] data_7x7, int frame_id, string path, int area, double lenght, int x, int y, int second_area,double NN_output)
+            public Save_data(short[] data_7x7, int frame_id, string path, int area, double lenght, int x, int y, int second_area)
             {
                 this.frame_id = frame_id;
                 this.path = path;
@@ -78,7 +63,6 @@ namespace WindowsFormsApp4
                 this.x = x;
                 this.y = y;
                 this.second_area = second_area;
-                this.NN_output = NN_output;
             }
         }
         public struct area
@@ -98,21 +82,22 @@ namespace WindowsFormsApp4
         int r = 35, c = 46;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
-        Sensor_data[,] data = new Sensor_data[35,46];
+        Sensor_data[,] data = new Sensor_data[35, 46];
         int p_w;
         int p_h;
         Car car = new Car(0, 0, 0, 0, false, new List<Point>());
         state Now_state = state.Normal;
         List<Point> Draw_point = new List<Point>();
-        int[,] class_array = new int[,] { { 0, 0, 0 },{0,0,0 },{0,0,0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+        int[,] class_array = new int[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         int[,] score_range = new int[,] { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
         StreamWriter csv_swriter;
-        string data_csv_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\data.csv";
+        string data_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\";
+        bool update_size = false;
         int frame_id = 0;
-        AI supervised_ori,supervised_Hao_one,supervised_Hao_two;
+        AI supervised_ori, supervised_Hao_one, supervised_Hao_two;
         DataTable dt;
-        string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString()+"_"+DateTime.Now.Hour+"_"+DateTime.Now.Minute+ "\\H\\";
-        string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString()+ "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH\\";
+        string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\Picture";
+        string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH";
         public Form1()
         {
             #region color initialize
@@ -137,7 +122,7 @@ namespace WindowsFormsApp4
             //supervised_Hao_one = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net\month_12_day_16_time_15_59\ckpt\weight.csv");
             supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
 
-           
+
         }
         Thread t;
 
@@ -165,7 +150,7 @@ namespace WindowsFormsApp4
 
             dataGridView2.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.75));
             dataGridView2.Size = new Size((int)(this.Width * 0.15), (int)(this.Height * 0.2));
-            
+
             dataGridView1.ColumnCount = 3;
             dataGridView1.RowCount = 11;
             dataGridView1.RowHeadersVisible = false;
@@ -180,8 +165,8 @@ namespace WindowsFormsApp4
             double f = 0.0;
             for (int i = 1; i < 11; i++)
             {
-                
-                dataGridView1.Rows[i].Cells[0].Value = f.ToString("F1")+" ~ "+ (f+0.1).ToString("F1");
+
+                dataGridView1.Rows[i].Cells[0].Value = f.ToString("F1") + " ~ " + (f + 0.1).ToString("F1");
                 f += 0.1;
             }
             dataGridView1.DataSource = dt;
@@ -192,10 +177,10 @@ namespace WindowsFormsApp4
             dataGridView2.RowCount = 7;
             dataGridView2.RowHeadersVisible = false;
             dataGridView2.ColumnHeadersVisible = false;
-           
+
             for (int i = 0; i < 4; i++)
             {
-                dataGridView2.Columns[i].Width = dataGridView2.Width / 4-4;
+                dataGridView2.Columns[i].Width = dataGridView2.Width / 4 - 4;
             }
             dataGridView2.Rows[0].Height = dataGridView2.Height / 7;
             dataGridView2.Rows[1].Height = dataGridView2.Height / 7;
@@ -206,9 +191,9 @@ namespace WindowsFormsApp4
             dataGridView2.Rows[6].Height = dataGridView2.Height / 7 - 1;
 
             dataGridView2.Rows[0].Cells[1].Value = "水";
-            dataGridView2.Rows[0].Cells[2].Value = "手";
-            dataGridView2.Rows[0].Cells[3].Value = "輸出";
-            
+            dataGridView2.Rows[0].Cells[2].Value = "不定";
+            dataGridView2.Rows[0].Cells[3].Value = "手";
+
             dataGridView2.Rows[1].Cells[0].Value = "數量(new)";
             dataGridView2.Rows[2].Cells[0].Value = "<0.1 or >0.9";
             dataGridView2.Rows[3].Cells[0].Value = "不定";
@@ -222,27 +207,28 @@ namespace WindowsFormsApp4
 
             Directory.CreateDirectory(nH_save_path);
             Directory.CreateDirectory(H_save_path);
-#region 新創csv
-            FileStream fs = new FileStream(data_csv_path, FileMode.Create, FileAccess.Write);
+            #region 新創csv
+            FileStream fs = new FileStream(data_path + "data.csv", FileMode.Create, FileAccess.Write);
             StreamWriter sw = new StreamWriter(fs);
             sw.Flush();
             sw.Close();
             fs.Close();
-#endregion
-            csv_swriter = new StreamWriter(data_csv_path, true);
+            #endregion
+            csv_swriter = new StreamWriter(data_path + "data.csv", true);
             save_t = new Thread(new ThreadStart(save_picture));
             save_t.Start();
         }
 
         bool have_peak;
+        int supervised_num = 0;
         Thread save_t;
         List<Touch_point> now_can_out_Point = new List<Touch_point>();
         List<Touch_point> Alternative = new List<Touch_point>();
         List<save_frame> save_frames = new List<save_frame>();
         List<area> area_size_set = new List<area>();
-
         void callback_method(Socket sc)
         {
+            int frame_number = 0;
             Stopwatch sw = new Stopwatch();
             while (true)
             {
@@ -251,39 +237,29 @@ namespace WindowsFormsApp4
                 int dataLength;
                 byte[] myBufferBytes = new byte[100000];
                 dataLength = sc.Receive(myBufferBytes);
-                List<save_format> data_csv = new List<save_format>();// 存所有的 peak
-   
-                int now_r = 0,now_c = 0;
-                for(int i = 0; i < dataLength; i=i+2)
+                frame_number++;
+                int now_r = 0, now_c = 0;
+                for (int i = 0; i < dataLength; i = i + 2)
                 {
-                    Int16 ans= (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
-                    data[now_r,now_c] = new Sensor_data(ans,false,now_r,now_c,(ans>37)?1:0,0); //add label and area size initliaize
+                    Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
+                    data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > 37) ? 1 : 0, 0); //add label and area size initliaize
                     now_r = (now_c == 45) ? now_r + 1 : now_r;
                     now_c = (now_c == 45) ? 0 : now_c + 1;
                 }
                 frame_id++;
-                List<Save_data> H = new List<Save_data>();
-                List<Save_data> nH = new List<Save_data>();
-                List<Touch_point> frame = new List<Touch_point>();
+                List<Save_data> sl = new List<Save_data>();
                 int label = 2;
                 area_size_set.Clear();
-
                 for (int i = 0; i < r; ++i)
                 {
                     for (int j = 0; j < c; ++j)
                     {
                         if (PatternMatch(ref data, i, j)) //i 是 row j 是 col
                         {
-                           
+
                             List<short> ans = get_arround(ref data, i, j);
-                            List<short> ans7x7 = get_arround7x7(ref data, i, j);
                             area area = new area(0);
-                            int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
-                            
-                            double[] output_ori = supervised_ori.calculate(ans.ToArray());
-                            score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
-                            
-                            #region Caluate Area
+
                             if (data[i, j].area_label == 1) //caluate area if is label == 1
                             {
 
@@ -295,222 +271,26 @@ namespace WindowsFormsApp4
                             {
                                 area = area_size_set[data[i, j].area_label - 2];
                             }
-                            #endregion
-
-                            ans = get_arround(ref data, i, j);
-
-                            #region Original if else decisde
-                            if (output_ori[0] <= 0.1) //Just Water
-                            {
-                                class_array[3, 0]++;
-                                class_array[4, 0]++;
-                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0,output_ori[0]));
-                            }
-                            else if (output_ori[0] > 0.1 && output_ori[0] <= 0.9) //Fuzzy Region
-                            {
-                                
-                                if (area.size > 20) //if area > 20
-                                {
-                                    #region area >20 Just Water
-                                    class_array[5, 0]++;
-                                    class_array[3, 0]++;
-                                    data[i, j].Class = Sensor_data.AI_class.Water;
-                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0, output_ori[0]));
-                                    #endregion
-                                }
-                                else
-                                {
-                                    double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
-                                    if (bevel_edge_lenght > 7.07) //Sencond check caluate bevel edge lenght if >7.07 
-                                    {
-                                        class_array[5, 0]++;
-                                        class_array[3, 0]++;
-                                        data[i, j].Class = Sensor_data.AI_class.Water;
-                                        nH.Add(new Save_data(ans7x7.ToArray(),frame_id,nH_save_path,area.size,bevel_edge_lenght,j,i,0, output_ori[0]));//存檔
-                                    }
-                                    else
-                                    {
-                                        if (output_ori[0] >= 0.7) // Third Check if NN output >0.7
-                                        {
-                                            int second_area = 0;
-                                            int sum = get_Negative_value(ref ans, ref second_area); //check its 5x5 arround Negative sum
-                                            if (sum < -20)
-                                            {
-                                                class_array[5, 0]++;
-                                                class_array[3, 0]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                                nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i,0, output_ori[0]));
-                                              //  Console.WriteLine("sum1  : " + sum + " " + supervised_num);
-                                            }
-                                            else
-                                            {
-                                                class_array[5, 1]++;
-                                                class_array[3, 1]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
-                                                have_peak = true;
-                                                bool have_parent = false; //看看是否有找到關係
-
-                                                for (int k = 0; k < Alternative.Count; k++)
-                                                {
-                                                    if (get_dis(Alternative[k], new Point(j, i)) < 5)
-                                                    {
-                                                        have_parent = true;
-                                                        Alternative[k].update(j, i, i, j, output_ori[0]);
-                                                        Alternative[k].have_child = true; //這一次有找到小孩
-                                                        break;
-                                                    }
-                                                }
-                                                if (!have_parent)// 新小孩
-                                                {
-                                                    Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
-                                                }
-                                            }
-                                        }
-                                        else //if NN <0.7
-                                        {
-                                            
-                                            int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
-                                            int sum = get_Negative_value(ref ans7x7, ref second_area);
-                                            if (sum < -40)
-                                            {
-                                                class_array[5, 0]++;
-                                                class_array[3, 0]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                                nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i,second_area, output_ori[0]));
-                                                //  Console.WriteLine("sum : " + sum + " "+ supervised_num);
-                                            }
-                                            else
-                                            {
-                                                if (second_area > 25)
-                                                {//if second_area>20 is water
-                                                    class_array[5, 0]++;
-                                                    class_array[3, 0]++;
-                                                    data[i, j].Class = Sensor_data.AI_class.Water;
-                                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                                    //   Console.WriteLine("second area : " + second_area + " " + supervised_num);
-                                                }
-                                                else
-                                                {
-                                                    class_array[5, 1]++;
-                                                    class_array[3, 1]++;
-                                                    data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                    H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                                    have_peak = true;
-                                                    bool have_parent = false; //看看是否有找到關係
-
-                                                    for (int k = 0; k < Alternative.Count; k++)
-                                                    {
-                                                        if (get_dis(Alternative[k], new Point(j, i)) < 5)
-                                                        {
-                                                            have_parent = true;
-                                                            Alternative[k].update(j, i, i, j, output_ori[0]);
-                                                            Alternative[k].have_child = true; //這一次有找到小孩
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (!have_parent)// 新小孩
-                                                    {
-                                                        Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }//Just Hand
-                            else
-                            {
-                                int second_area = 0;
-                                int sum = get_Negative_value(ref ans, ref second_area);
-                                class_array[4, 1]++;
-                                class_array[3, 1]++;
-                                data[i, j].Class = Sensor_data.AI_class.Hand;
-                                H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, 0, j, i, 0, output_ori[0]));
-                                have_peak = true;
-                                bool have_parent = false; //看看是否有找到關係
-
-                                for (int k = 0; k < Alternative.Count; k++)
-                                {
-                                    if (get_dis(Alternative[k], new Point(j, i)) < 5)
-                                    {
-                                        have_parent = true;
-                                        Alternative[k].update(j, i, i, j, output_ori[0]);
-                                        Alternative[k].have_child = true; //這一次有找到小孩
-                                        break;
-                                    }
-                                }
-                                if (!have_parent)// 新小孩
-                                {
-                                    Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
-                                }
-                            }
-                            #endregion
-                           
-                          
+                            double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
+                            ans = get_arround7x7(ref data, i, j);
+                            int second_area = 0;
+                            int sum = get_Negative_value(ref ans, ref second_area);
+                            sl.Add(new Save_data(ans.ToArray(), frame_id, data_path + "Picture", area.size, bevel_edge_lenght, j, i, second_area));
+                            have_peak = true;
                         }
                     }
                 }
                 if (have_peak)
                 {
-                    save_frames.Add(new save_frame(H.ToArray(), nH.ToArray()));
+                    save_frames.Add(new save_frame(sl.ToArray()));
                     have_peak = false;
-                }
-                for (int i = Alternative.Count - 1; i >= 0; i--) //報點條件 sucessful >=2
-                {
-                    if (Alternative[i].all_time == 0) //新小孩
-                    {
-
-                    }
-                    else if (Alternative[i].all_time != 0)
-                    {
-                        if (Alternative[i].have_child)//看看這次有無找到後代
-                        {
-                            if (Alternative[i].sucessful >= 2)
-                            {
-                                Alternative[i].can_out = true;
-                                Alternative[i].add_point_to_list(new Point(p_w * Alternative[i].X + p_w / 2, p_h * Alternative[i].Y + p_h / 2));
-                                
-                                class_array[3, 2]++;
-                            }
-                        }
-                        else //沒找到後代的話
-                        {
-                            Alternative[i].interval_time++;
-                            if (Alternative[i].can_out) //已經先出頭過的 再來檢查看看手有無放開
-                            {
-                                Alternative[i].add_point_to_list(new Point(p_w * Alternative[i].X + p_w / 2, p_h * Alternative[i].Y + p_h / 2));
-                            }
-                            if (Alternative[i].interval_time > 1) //間隔一次都沒有後代
-                            {
-                                Alternative.RemoveAt(i);
-                                continue;
-                            }
-                        }
-                    }
-                    Alternative[i].have_child = false;
-                    Alternative[i].all_time++;
                 }
                 double fps = sw.ElapsedMilliseconds;
                 try
                 {
                     BeginInvoke(new MethodInvoker(() =>
                     {
-                        for(int i = 0; i < 10; i++)
-                        {
-                            dataGridView1.Rows[i + 1].Cells[1].Value = score_range[0,i];
-                            dataGridView1.Rows[i + 1].Cells[2].Value = score_range[1, i];
-                        }
-                        for(int i = 0; i < 6; i++)
-                        {
-                            for(int j = 0; j < 3; j++)
-                            {
 
-                                dataGridView2.Rows[1+i].Cells[j+1].Value = class_array[i, j];
-
-                            }
-                        }
                     }));
                 }
                 catch (InvalidOperationException ex)
@@ -520,23 +300,23 @@ namespace WindowsFormsApp4
                 pictureBox1.Invalidate();
             }
         }
-        double get_dis(Touch_point a,Point p)
+        double get_dis(Touch_point a, Point p)
         {
             return Math.Sqrt(Math.Pow(a.X - p.X, 2) + Math.Pow(a.Y - p.Y, 2));
         }
         static int[] dirX = new int[] { -1, 0, 1, -1, 1, -1, 0, 1 };
         static int[] dirY = new int[] { -1, -1, -1, 0, 0, 1, 1, 1 };
-        int get_Negative_value(ref List<short> ans,ref int second_area )
+        int get_Negative_value(ref List<short> ans, ref int second_area)
         {
             int sum = 0;
-            for(int i = 0; i < ans.Count; i++)
+            for (int i = 0; i < ans.Count; i++)
             {
                 second_area += (ans[i] > 10) ? 1 : 0;
                 sum += (ans[i] < 0) ? ans[i] : 0;
             }
             return sum;
         }
-        static void seed_filling(ref Sensor_data[,] pixel, int x, int y, int label,ref area area_size)
+        static void seed_filling(ref Sensor_data[,] pixel, int x, int y, int label, ref area area_size)
         {
             pixel[y, x].area_label = label;
             area_size.size++;
@@ -551,13 +331,13 @@ namespace WindowsFormsApp4
 
             if (area_size.min_y > y)
                 area_size.min_y = y;
-            
+
             for (int i = 0; i < 8; i++)
             {
                 if (dirY[i] + y >= 0 && dirY[i] + y < 35 && dirX[i] + x >= 0 && dirX[i] + x < 46 && pixel[dirY[i] + y, dirX[i] + x].area_label == 1)
                 {
                     pixel[dirY[i] + y, dirX[i] + x].area_label = label;
-                    seed_filling(ref pixel, dirX[i] + x, dirY[i] + y, label,ref area_size);
+                    seed_filling(ref pixel, dirX[i] + x, dirY[i] + y, label, ref area_size);
                 }
             }
         }
@@ -566,33 +346,34 @@ namespace WindowsFormsApp4
         {
             while (true)
             {
-                if (save_frames.Count != 0 )
+                if (save_frames.Count != 0)
                 {
                     try
                     {
-                    
-                        for (int i = 0; i < save_frames[0].H.Length; i++)
+                        for (int i = 0; i < save_frames[0].Area.Length; i++)
                         {
-                            Node.save_arround(save_frames[0].H[i].data_7x7,save_frames[0].H[0]);
+                            csv_class.WriteCVS(ref csv_swriter, save_frames[0].Area[i]);
                         }
-                        for (int i = 0; i < save_frames[0].NH.Length; i++)
+                        for (int i = 0; i < save_frames[0].Area.Length; i++)
                         {
-                            Node.save_arround(save_frames[0].NH[i].data_7x7, save_frames[0].NH[0]);
+                            Node.save_arround(save_frames[0].Area[i].data_7x7, save_frames[0].Area[i]);
                         }
+
                         save_frames.RemoveAt(0);
-                    }catch(NullReferenceException ex)
+                    }
+                    catch (NullReferenceException ex)
                     {
                         Console.WriteLine(ex.ToString());
                     }
                 }
             }
         }
-     
+
         Sensor_data get_date(ref Sensor_data[,] s_data, int row, int col)
         {
             return s_data[row, col];
         }
-        List<short> get_arround(ref Sensor_data[,] s_data,int row,int col)
+        List<short> get_arround(ref Sensor_data[,] s_data, int row, int col)
         {
             List<short> ans = new List<short>();
             for (int y = -2; y <= +2; ++y)
@@ -607,7 +388,7 @@ namespace WindowsFormsApp4
                     }
                     else
                     {
-                        short sig = get_date(ref s_data ,tr, tc).value;
+                        short sig = get_date(ref s_data, tr, tc).value;
                         //*bp = (sig <= 0)? 0: sig;
                         ans.Add(sig);
                     }
@@ -638,7 +419,7 @@ namespace WindowsFormsApp4
             }
             return ans;
         }
-        bool check_in_car(int row,int col)
+        bool check_in_car(int row, int col)
         {
             int car_row = car.draw_sub_point[car.index].Y / p_h;
             int car_col = car.draw_sub_point[car.index].X / p_w;
@@ -647,22 +428,22 @@ namespace WindowsFormsApp4
         }
         public enum compare
         {
-            more,more_equal
+            more, more_equal
         }
         bool PatternMatch(ref Sensor_data[,] s_data, int row, int col)
         {
-            int[] dirX = new int[]{ -1, 0, 1, -1, 1, -1, 0, 1 };
+            int[] dirX = new int[] { -1, 0, 1, -1, 1, -1, 0, 1 };
             int[] dirY = new int[] { -1, -1, -1, 0, 0, 1, 1, 1 };
-            compare[] com = new compare[] {compare.more_equal, compare.more_equal, compare.more_equal, compare.more, compare.more_equal, compare.more, compare.more, compare.more };
+            compare[] com = new compare[] { compare.more_equal, compare.more_equal, compare.more_equal, compare.more, compare.more_equal, compare.more, compare.more, compare.more };
 
-            short mid = get_date(ref s_data,row,col).value;
-            if (mid <38) return false;
-           
+            short mid = get_date(ref s_data, row, col).value;
+            if (mid < 38) return false;
+
             for (int d = 0; d < dirX.Length; ++d)
             {
                 int tr = row + dirY[d];
                 int tc = col + dirX[d];
-                if (!Sensor_data.BoundaryCheck(tr, tc)) 
+                if (!Sensor_data.BoundaryCheck(tr, tc))
                     continue;
                 switch (com[d])
                 {
@@ -677,20 +458,20 @@ namespace WindowsFormsApp4
                     default:
                         break;
                 }
-                
+
             }
             get_date(ref s_data, row, col).is_peak = true;
             return true;
         }
-       
+
         private List<Point> get_sub_point(List<Node> node_list)
         {
             List<Point> sub_path = new List<Point>();
-            for(int i = 0; i < node_list.Count - 1; i++)
+            for (int i = 0; i < node_list.Count - 1; i++)
             {
-                Point start = new Point(node_list[i].X*p_w + p_w / 2, node_list[i].Y * p_h + p_h / 2);
-                Point end = new Point(node_list[i+1].X * p_w + p_w / 2, node_list[i+1].Y * p_h + p_h / 2);
-                Vector3 line = cross(new Vector3(start.X,start.Y, 1), new Vector3(end.X, end.Y, 1));
+                Point start = new Point(node_list[i].X * p_w + p_w / 2, node_list[i].Y * p_h + p_h / 2);
+                Point end = new Point(node_list[i + 1].X * p_w + p_w / 2, node_list[i + 1].Y * p_h + p_h / 2);
+                Vector3 line = cross(new Vector3(start.X, start.Y, 1), new Vector3(end.X, end.Y, 1));
                 if (Math.Abs(start.X - end.X) > Math.Abs(start.Y - end.Y))
                 {
                     if (start.X < end.X)
@@ -781,51 +562,51 @@ namespace WindowsFormsApp4
         Size pic1_size, pic2_size;
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            
+
             switch (e.KeyData)
             {
                 case Keys.A:
                     MessageBox.Show(this.Size.Width + " " + this.Size.Height);
                     break;
-                
+
                 case Keys.NumPad4:
-                    pic1_size = new Size(pictureBox1.Size.Width-1, pictureBox1.Size.Height);
-         
+                    pic1_size = new Size(pictureBox1.Size.Width - 1, pictureBox1.Size.Height);
+                    update_size = true;
                     break;
                 case Keys.NumPad6:
                     pic1_size = new Size(pictureBox1.Size.Width + 1, pictureBox1.Size.Height);
-    
+                    update_size = true;
                     break;
                 case Keys.NumPad2:
-                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height+1);
-                   
+                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height + 1);
+                    update_size = true;
                     break;
                 case Keys.NumPad8:
-                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height-1);
-             
+                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height - 1);
+                    update_size = true;
                     break;
                 case Keys.S:
                     if (big_node.Count >= 2 && !car.can_go)
                     {
-                       car = new Car(big_node[0].X, big_node[0].Y, big_node[0].r, big_node[0].c,true, get_sub_point(big_node));
+                        car = new Car(big_node[0].X, big_node[0].Y, big_node[0].r, big_node[0].c, true, get_sub_point(big_node));
                     }
                     break;
                 case Keys.C:
-                 
+
                     break;
                 case Keys.H:
                     record = !record;
-                
-                 //   record_lbox.Items.Clear();
+
+                    //   record_lbox.Items.Clear();
                     DateTime saveNow = DateTime.Now;
-                    
+
                     break;
                 case Keys.E:
                     Draw_point.Clear();
                     //ans_lb.Text = "ans : " + string.Format("{.2f}", (record_lbox.Items.Count / (double)(record_lbox.Items.Count + no_record_lbox.Items.Count)) * 100.0);
-                  //  no_record_lbox.Items.Clear();
+                    //  no_record_lbox.Items.Clear();
                     //record_lbox.Items.Clear();
-                    
+
                     break;
                 case Keys.D:
                     Now_state = state.draw;
@@ -838,24 +619,31 @@ namespace WindowsFormsApp4
             //  pictureBox1.Invalidate();
         }
 
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            csv_swriter.Flush();
+            csv_swriter.Close();
+        }
+
         private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
         {
 
-            if(e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
-                Node node = new Node(e.X/p_w,e.Y/p_h,e.Y / p_h, e.X / p_w);
+                Node node = new Node(e.X / p_w, e.Y / p_h, e.Y / p_h, e.X / p_w);
                 big_node.Add(node);
                 var st = "r: {0} c: {1}";
                 st = String.Format(st, node.r, node.c);
-             //   node_lbox.Items.Add(st);
+                //   node_lbox.Items.Add(st);
             }
-          //  pictureBox2.Invalidate();
+            //  pictureBox2.Invalidate();
         }
 
         private void pictureBox2_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            switch (Now_state){
+            switch (Now_state)
+            {
                 case state.Normal:
                     if (big_node.Count != 0)
                     {
@@ -880,28 +668,29 @@ namespace WindowsFormsApp4
                     int count = Alternative.Count;
                     if (count > 0)
                     {
-                        for (int i = 0; i < count; i++) {
-                            if (Alternative[i].draw_point.Count !=0)
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (Alternative[i].draw_point.Count != 0)
                             {
-                                for(int j = 0;j< Alternative[i].draw_point.Count; j++)
+                                for (int j = 0; j < Alternative[i].draw_point.Count; j++)
                                 {
-                                    g.DrawArc(new Pen(Alternative[i].color,5), new Rectangle((int)(Alternative[i].draw_point[j].X - p_w / 3),
+                                    g.DrawArc(new Pen(Alternative[i].color, 5), new Rectangle((int)(Alternative[i].draw_point[j].X - p_w / 3),
                                         (int)(Alternative[i].draw_point[j].Y - p_h / 3), p_w / 3 * 2, p_h / 3 * 2), 0, 360);
                                 }
                                 if (Alternative[i].draw_point.Count > 3)
                                 {
-                                    g.DrawCurve(new Pen(Alternative[i].color,5), Alternative[i].draw_point.ToArray());
+                                    g.DrawCurve(new Pen(Alternative[i].color, 5), Alternative[i].draw_point.ToArray());
                                 }
                             }
-                            
-                        }
-                       
-                    }
-                    //for (int i = 0; i < 256; i++)
-                    //{
-                    //    g.DrawRectangle(new Pen(Node.GrayTonew_color_V(i)), new Rectangle(10, 30 + i * 2, 20, 2));
 
-                    //}
+                        }
+
+                    }
+                    for (int i = 0; i < 256; i++)
+                    {
+                        g.DrawRectangle(new Pen(Node.GrayTonew_color_V(i)), new Rectangle(10, 30 + i * 2, 20, 2));
+
+                    }
 
                     break;
                 default:
@@ -913,8 +702,8 @@ namespace WindowsFormsApp4
         {
 
             Graphics g = e.Graphics;
-             p_w = pictureBox1.Width / c;
-             p_h = pictureBox1.Height / r;
+            p_w = pictureBox1.Width / c;
+            p_h = pictureBox1.Height / r;
             switch (Now_state)
             {
                 case state.Normal:
@@ -934,7 +723,7 @@ namespace WindowsFormsApp4
                             else
                                 g.FillRectangle(new SolidBrush(data[row, col].draw_color), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
                             if (data[row, col].is_peak)
-                                g.DrawEllipse(new Pen((data[row,col].Class ==Sensor_data.AI_class.Water)? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                g.DrawEllipse(new Pen((data[row, col].Class == Sensor_data.AI_class.Water) ? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
                             //if (i == 0)
                             //{
                             //    g.DrawString(frame_id.ToString(), drawFont, drawBrush, new PointF(0 * p_w + (p_w / 3), 0 * p_h + (p_h / 3)));
@@ -949,11 +738,11 @@ namespace WindowsFormsApp4
                             break;
                         }
                     }
-                    for(int i = 0;i< area_size_set.Count; i++)
+                    for (int i = 0; i < area_size_set.Count; i++)
                     {
-                        g.DrawLine(new Pen(Color.Red,2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
+                        g.DrawLine(new Pen(Color.Red, 2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
                             area_size_set[i].max_x * p_w + (p_w / 3), area_size_set[i].max_y * p_h + (p_h / 3));
-                       // Console.WriteLine(String.Format("{0} {1} {2} {3}", area_size_set[i].min_x, area_size_set[i].min_y, area_size_set[i].max_x, area_size_set[i].max_y));
+                        // Console.WriteLine(String.Format("{0} {1} {2} {3}", area_size_set[i].min_x, area_size_set[i].min_y, area_size_set[i].max_x, area_size_set[i].max_y));
                     }
                     for (int i = 0; i <= r; i++)
                     {
@@ -966,7 +755,6 @@ namespace WindowsFormsApp4
                     }
                     break;
                 case state.draw:
-
                     break;
                 default:
                     break;

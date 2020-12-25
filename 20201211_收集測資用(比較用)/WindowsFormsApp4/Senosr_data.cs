@@ -8,11 +8,13 @@ namespace WindowsFormsApp4
 {
     public class Sensor_data
     {
-        public enum draw_rectangle :int{
-            None,inside,outside,Hand,non_Hand
+        public enum draw_rectangle : int
+        {
+            None, inside, outside, Hand, non_Hand
         }
-        public enum AI_class{
-            Hand,Water
+        public enum AI_class
+        {
+            Hand, Water
         }
         public int area_label = 0; //if bigger than  threshold : 1 
         public int area_size = 0;// area size 
@@ -22,13 +24,13 @@ namespace WindowsFormsApp4
         public bool is_peak = false;
         public Color draw_color;
         public AI_class Class;
-        public Sensor_data(short value,bool is_peak,int position_r,int position_c)
+        public Sensor_data(short value, bool is_peak, int position_r, int position_c)
         {
             this.value = value;
             this.is_peak = is_peak;
             this.position_c = position_c;
             this.position_r = position_r;
-            this.draw_color = Node.GrayTonew_color_V(value+127);
+            this.draw_color = Node.GrayTonew_color_V(value + 127);
         }
         public Sensor_data(short value, bool is_peak, int position_r, int position_c, int area_label, int area_size) : this(value, is_peak, position_r, position_c)
         {
@@ -48,14 +50,14 @@ namespace WindowsFormsApp4
         {
 
         }
-        public Node(int X,int Y,int r,int c)
+        public Node(int X, int Y, int r, int c)
         {
             this.X = X;
             this.Y = Y;
             this.r = r;
             this.c = c;
         }
-        public static void save_arround(short[] input,Form1.Save_data s )
+        public static void save_arround(short[] input, Form1.Save_data s)
         {
             Bitmap bitmap = new Bitmap(350, 350);
             Graphics e = Graphics.FromImage(bitmap);
@@ -79,7 +81,7 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
-                bitmap.Save(string.Format("{0}{1}_{2}_{3}_{4}_({5},{6}).png", s.path,s.NN_output,s.area,s.lenght.ToString("F2"),s.second_area,s.x,s.y));
+                bitmap.Save(string.Format("{0}\\{1}_{2}_({3},{4}).png", s.path, s.frame_id, s.area, s.x, s.y));
             }
             else
             {
@@ -101,7 +103,7 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
-                bitmap.Save(string.Format("{0}{1}_{2}_{3}_{4}_({5},{6}).png", s.path, s.NN_output, s.area, s.lenght.ToString("F2"), s.second_area, s.x, s.y));
+                bitmap.Save(string.Format("{0}\\{1}_{2}_({3},{4}).png", s.path, s.frame_id, s.area, s.x, s.y));
             }
         }
         private static int normailze(int v)
@@ -114,9 +116,9 @@ namespace WindowsFormsApp4
             {
                 return Color.FromArgb(255, 0, 0, 0);
             }
-            else if (val <= 42 && val>0)
+            else if (val <= 42 && val > 0)
             {
-                return Color.FromArgb(255, 127+val * 3, 0, val*3);
+                return Color.FromArgb(255, 127 + val * 3, 0, val * 3);
             }
             else if (val <= 84 && val > 42)
             {
@@ -131,12 +133,12 @@ namespace WindowsFormsApp4
             else if (val <= 168 && val > 126)
             {
                 val -= 126;
-                return Color.FromArgb(255, 255 - val * 3, 255, 255-val*3);
+                return Color.FromArgb(255, 255 - val * 3, 255, 255 - val * 3);
             }
             else if (val <= 210 && val > 168)
             {
                 val -= 168;
-                return Color.FromArgb(255,127-val*3, 255 , 127);
+                return Color.FromArgb(255, 127 - val * 3, 255, 127);
             }
             else
             {
@@ -146,18 +148,18 @@ namespace WindowsFormsApp4
 
         }
     }
-    public class Touch_point:Node
+    public class Touch_point : Node
     {
-       public double NN_output;
-       public int sucessful = 0, interval_time = 0,disapper_time = 0,all_time = 0;
-       public bool can_out = false, have_child = false;
+        public double NN_output;
+        public int sucessful = 0, interval_time = 0, disapper_time = 0, all_time = 0;
+        public bool can_out = false, have_child = false;
         public List<Point> draw_point = new List<Point>();
         public Color color;
-       public Touch_point()
-       {
+        public Touch_point()
+        {
 
-       }
-       public Touch_point(int X,int Y,int r ,int c,double NN_output)
+        }
+        public Touch_point(int X, int Y, int r, int c, double NN_output)
         {
             this.X = X;
             this.Y = Y;
@@ -165,10 +167,10 @@ namespace WindowsFormsApp4
             this.c = c;
             this.NN_output = NN_output;
             this.color = get_init_color();
-            
+
 
         }
-        public void update(int X,int Y,int r,int c, double NN_output)
+        public void update(int X, int Y, int r, int c, double NN_output)
         {
             sucessful++;//成功次數+1
             this.X = X;
@@ -181,15 +183,15 @@ namespace WindowsFormsApp4
         private Color get_init_color()
         {
             Random rand = new Random();
-            
-            return Color.FromArgb(rand.Next(50,255), rand.Next(0, 255), rand.Next(80, 255));
+
+            return Color.FromArgb(rand.Next(50, 255), rand.Next(0, 255), rand.Next(80, 255));
         }
         public void add_point_to_list(Point p)
         {
             draw_point.Insert(0, p);
-          
+
         }
     }
-    
-    
+
+
 }
