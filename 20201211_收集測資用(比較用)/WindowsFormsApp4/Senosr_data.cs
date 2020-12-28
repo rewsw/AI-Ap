@@ -101,6 +101,8 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
+
+                e.DrawRectangle(new Pen(Color.Red), new Rectangle(50, 50, 250, 250));
                 bitmap.Save(string.Format("{0}\\{1}_{2}_{3}_{4}_{5}_({6},{7}).png", s.path, s.frame_id, s.NN_output.ToString("F2"), s.area, s.lenght.ToString("F2"), s.second_area, s.x, s.y));
             }
         }

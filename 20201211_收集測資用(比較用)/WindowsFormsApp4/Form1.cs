@@ -279,7 +279,19 @@ namespace WindowsFormsApp4
                             List<short> ans7x7 = get_arround7x7(ref data, i, j);
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
-
+                            int edge_level = -1;
+                            if (is_edge == 1)
+                            {
+                                if(i == 0 || j == 0 || i == r-1 || j == c - 1)
+                                {
+                                    edge_level = 0;
+                                }
+                                else
+                                {
+                                    edge_level = 1;
+                                }
+                            }
+                            
                             double[] output_ori = supervised_ori.calculate(ans.ToArray());
                             score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
 
@@ -372,6 +384,8 @@ namespace WindowsFormsApp4
 
                                             int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
                                             int sum = get_Negative_value(ref ans7x7, ref second_area);
+                                            
+                                        
                                             if (sum < -40)
                                             {
                                                 class_array[5, 0]++;
