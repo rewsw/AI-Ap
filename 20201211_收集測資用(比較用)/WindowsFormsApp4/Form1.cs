@@ -312,105 +312,57 @@ namespace WindowsFormsApp4
                             ans = get_arround(ref data, i, j);
 
                             #region Original if else decisde
-                            if (output_ori[0] <= 0.1) //Just Water
+                            if (is_edge == 0)
                             {
-                                class_array[3, 0]++;
-                                class_array[4, 0]++;
-                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0, output_ori[0]));
-                            }
-                            else if (output_ori[0] > 0.1 && output_ori[0] <= 0.9) //Fuzzy Region
-                            {
-
-                                if (area.size > 20) //if area > 20
+                                if (output_ori[0] <= 0.3) //Just Water
                                 {
-                                    #region area >20 Just Water
-                                    class_array[5, 0]++;
                                     class_array[3, 0]++;
+                                    class_array[4, 0]++;
                                     data[i, j].Class = Sensor_data.AI_class.Water;
                                     nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0, output_ori[0]));
-                                    #endregion
                                 }
-                                else
+                                else if (output_ori[0] > 0.3 && output_ori[0] <= 0.95) //Fuzzy Region
                                 {
-                                    double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
-                                    if (bevel_edge_lenght > 7.07) //Sencond check caluate bevel edge lenght if >7.07 
+
+                                    if (area.size > 20) //if area > 20
                                     {
+                                        #region area >20 Just Water
                                         class_array[5, 0]++;
                                         class_array[3, 0]++;
                                         data[i, j].Class = Sensor_data.AI_class.Water;
-                                        nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));//存檔
+                                        nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0, output_ori[0]));
+                                        #endregion
                                     }
                                     else
                                     {
-                                        if (output_ori[0] >= 0.7) // Third Check if NN output >0.7
+                                        double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
+                                        if (bevel_edge_lenght > 7.07) //Sencond check caluate bevel edge lenght if >7.07 
                                         {
-                                            int second_area = 0;
-                                            int sum = get_Negative_value(ref ans, ref second_area); //check its 5x5 arround Negative sum
-                                            if (sum < -20)
-                                            {
-                                                class_array[5, 0]++;
-                                                class_array[3, 0]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                                nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
-                                            }
-                                            else
-                                            {
-                                                class_array[5, 1]++;
-                                                class_array[3, 1]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
-                                    
-                                                bool have_parent = false; //看看是否有找到關係
-
-                                                for (int k = 0; k < Alternative.Count; k++)
-                                                {
-                                                    if (get_dis(Alternative[k], new Point(j, i)) < 5)
-                                                    {
-                                                        have_parent = true;
-                                                        Alternative[k].update(j, i, i, j, output_ori[0]);
-                                                        Alternative[k].have_child = true; //這一次有找到小孩
-                                                        break;
-                                                    }
-                                                }
-                                                if (!have_parent)// 新小孩
-                                                {
-                                                    Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
-                                                }
-                                            }
+                                            class_array[5, 0]++;
+                                            class_array[3, 0]++;
+                                            data[i, j].Class = Sensor_data.AI_class.Water;
+                                            nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));//存檔
                                         }
-                                        else //if NN <0.7
+                                        else
                                         {
-
-                                            int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
-                                            int sum = get_Negative_value(ref ans7x7, ref second_area);
-                                            
-                                        
-                                            if (sum < -40)
+                                            if (output_ori[0] >= 0.95) // Third Check if NN output >0.7
                                             {
-                                                class_array[5, 0]++;
-                                                class_array[3, 0]++;
-                                                data[i, j].Class = Sensor_data.AI_class.Water;
-                                                nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                  
-                                            }
-                                            else
-                                            {
-                                                if (second_area > 25)
-                                                {//if second_area>20 is water
+                                                int second_area = 0;
+                                                int sum = get_Negative_value(ref ans, ref second_area); //check its 5x5 arround Negative sum
+                                                if (sum < -20)
+                                                {
                                                     class_array[5, 0]++;
                                                     class_array[3, 0]++;
                                                     data[i, j].Class = Sensor_data.AI_class.Water;
-                                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                                  
+                                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
                                                 }
                                                 else
                                                 {
                                                     class_array[5, 1]++;
                                                     class_array[3, 1]++;
                                                     data[i, j].Class = Sensor_data.AI_class.Hand;
-                                                    H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
-                                          
+                                                    H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
+
                                                     bool have_parent = false; //看看是否有找到關係
 
                                                     for (int k = 0; k < Alternative.Count; k++)
@@ -429,36 +381,247 @@ namespace WindowsFormsApp4
                                                     }
                                                 }
                                             }
+                                            else //if NN <0.95
+                                            {
+
+                                                int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
+                                                int sum = get_Negative_value(ref ans7x7, ref second_area);
+
+
+                                                if (sum < -40)
+                                                {
+                                                    class_array[5, 0]++;
+                                                    class_array[3, 0]++;
+                                                    data[i, j].Class = Sensor_data.AI_class.Water;
+                                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                }
+                                                else
+                                                {
+                                                    if (output_ori[0] < 0.5)
+                                                    {
+                                                        if (second_area > 20)
+                                                        {//if second_area>20 is water
+                                                            class_array[5, 0]++;
+                                                            class_array[3, 0]++;
+                                                            data[i, j].Class = Sensor_data.AI_class.Water;
+                                                            nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                        }
+                                                        else
+                                                        {
+                                                            class_array[5, 1]++;
+                                                            class_array[3, 1]++;
+                                                            data[i, j].Class = Sensor_data.AI_class.Hand;
+                                                            H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                            bool have_parent = false; //看看是否有找到關係
+
+                                                            for (int k = 0; k < Alternative.Count; k++)
+                                                            {
+                                                                if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                                                {
+                                                                    have_parent = true;
+                                                                    Alternative[k].update(j, i, i, j, output_ori[0]);
+                                                                    Alternative[k].have_child = true; //這一次有找到小孩
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!have_parent)// 新小孩
+                                                            {
+                                                                Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (second_area > 25)
+                                                        {//if second_area>20 is water
+                                                            class_array[5, 0]++;
+                                                            class_array[3, 0]++;
+                                                            data[i, j].Class = Sensor_data.AI_class.Water;
+                                                            nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                        }
+                                                        else
+                                                        {
+                                                            class_array[5, 1]++;
+                                                            class_array[3, 1]++;
+                                                            data[i, j].Class = Sensor_data.AI_class.Hand;
+                                                            H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                            bool have_parent = false; //看看是否有找到關係
+
+                                                            for (int k = 0; k < Alternative.Count; k++)
+                                                            {
+                                                                if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                                                {
+                                                                    have_parent = true;
+                                                                    Alternative[k].update(j, i, i, j, output_ori[0]);
+                                                                    Alternative[k].have_child = true; //這一次有找到小孩
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!have_parent)// 新小孩
+                                                            {
+                                                                Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }//Just Hand
+                                else
+                                {
+                                    int second_area = 0;
+                                    int sum = get_Negative_value(ref ans, ref second_area);
+                                    class_array[4, 1]++;
+                                    class_array[3, 1]++;
+                                    data[i, j].Class = Sensor_data.AI_class.Hand;
+                                    H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, 0, j, i, 0, output_ori[0]));
+
+                                    bool have_parent = false; //看看是否有找到關係
+
+                                    for (int k = 0; k < Alternative.Count; k++)
+                                    {
+                                        if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                        {
+                                            have_parent = true;
+                                            Alternative[k].update(j, i, i, j, output_ori[0]);
+                                            Alternative[k].have_child = true; //這一次有找到小孩
+                                            break;
+                                        }
+                                    }
+                                    if (!have_parent)// 新小孩
+                                    {
+                                        Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                    }
+                                }
+                            }
+                            else//邊緣
+                            {
+                                if (output_ori[0] <= 0.3) //Just Water
+                                {
+                                    class_array[3, 0]++;
+                                    class_array[4, 0]++;
+                                    data[i, j].Class = Sensor_data.AI_class.Water;
+                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0, output_ori[0]));
+                                }
+                                else if (output_ori[0] > 0.3) //Fuzzy Region
+                                {
+
+                                    if (area.size > 20) //if area > 20
+                                    {
+                                        #region area >20 Just Water
+                                        class_array[5, 0]++;
+                                        class_array[3, 0]++;
+                                        data[i, j].Class = Sensor_data.AI_class.Water;
+                                        nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, 0, j, i, 0, output_ori[0]));
+                                        #endregion
+                                    }
+                                    else
+                                    {
+                                        double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
+                                        if (bevel_edge_lenght > 7.07) //Sencond check caluate bevel edge lenght if >7.07 
+                                        {
+                                            class_array[5, 0]++;
+                                            class_array[3, 0]++;
+                                            data[i, j].Class = Sensor_data.AI_class.Water;
+                                            nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));//存檔
+                                        }
+                                        else
+                                        {
+                                            if (output_ori[0] >= 0.95) // Third Check if NN output >0.7
+                                            {
+                                                int second_area = 0;
+                                                int sum = get_Negative_value(ref ans, ref second_area); //check its 5x5 arround Negative sum
+                                                if (sum < -20)
+                                                {
+                                                    class_array[5, 0]++;
+                                                    class_array[3, 0]++;
+                                                    data[i, j].Class = Sensor_data.AI_class.Water;
+                                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
+                                                }
+                                                else
+                                                {
+                                                    class_array[5, 1]++;
+                                                    class_array[3, 1]++;
+                                                    data[i, j].Class = Sensor_data.AI_class.Hand;
+                                                    H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, 0, output_ori[0]));
+
+                                                    bool have_parent = false; //看看是否有找到關係
+
+                                                    for (int k = 0; k < Alternative.Count; k++)
+                                                    {
+                                                        if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                                        {
+                                                            have_parent = true;
+                                                            Alternative[k].update(j, i, i, j, output_ori[0]);
+                                                            Alternative[k].have_child = true; //這一次有找到小孩
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!have_parent)// 新小孩
+                                                    {
+                                                        Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                                    }
+                                                }
+                                            }
+                                            else //if NN <0.95
+                                            { 
+                                                int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
+                                                int sum = get_Negative_value(ref ans7x7, ref second_area);
+                                                if (sum < -40)
+                                                {
+                                                    class_array[5, 0]++;
+                                                    class_array[3, 0]++;
+                                                    data[i, j].Class = Sensor_data.AI_class.Water;
+                                                    nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                }
+                                                else
+                                                {
+                                                    if (second_area > 25)
+                                                    {//if second_area>20 is water
+                                                        class_array[5, 0]++;
+                                                        class_array[3, 0]++;
+                                                        data[i, j].Class = Sensor_data.AI_class.Water;
+                                                        nH.Add(new Save_data(ans7x7.ToArray(), frame_id, nH_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                    }
+                                                    else
+                                                    {
+                                                        class_array[5, 1]++;
+                                                        class_array[3, 1]++;
+                                                        data[i, j].Class = Sensor_data.AI_class.Hand;
+                                                        H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, bevel_edge_lenght, j, i, second_area, output_ori[0]));
+
+                                                        bool have_parent = false; //看看是否有找到關係
+
+                                                        for (int k = 0; k < Alternative.Count; k++)
+                                                        {
+                                                            if (get_dis(Alternative[k], new Point(j, i)) < 5)
+                                                            {
+                                                                have_parent = true;
+                                                                Alternative[k].update(j, i, i, j, output_ori[0]);
+                                                                Alternative[k].have_child = true; //這一次有找到小孩
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!have_parent)// 新小孩
+                                                        {
+                                                            Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }//Just Hand
-                            else
-                            {
-                                int second_area = 0;
-                                int sum = get_Negative_value(ref ans, ref second_area);
-                                class_array[4, 1]++;
-                                class_array[3, 1]++;
-                                data[i, j].Class = Sensor_data.AI_class.Hand;
-                                H.Add(new Save_data(ans7x7.ToArray(), frame_id, H_save_path, area.size, 0, j, i, 0, output_ori[0]));
-                              
-                                bool have_parent = false; //看看是否有找到關係
-
-                                for (int k = 0; k < Alternative.Count; k++)
-                                {
-                                    if (get_dis(Alternative[k], new Point(j, i)) < 5)
-                                    {
-                                        have_parent = true;
-                                        Alternative[k].update(j, i, i, j, output_ori[0]);
-                                        Alternative[k].have_child = true; //這一次有找到小孩
-                                        break;
-                                    }
-                                }
-                                if (!have_parent)// 新小孩
-                                {
-                                    Alternative.Add(new Touch_point(j, i, i, j, output_ori[0]));
-                                }
                             }
+                            
                             #endregion
                             have_peak = true;
 
