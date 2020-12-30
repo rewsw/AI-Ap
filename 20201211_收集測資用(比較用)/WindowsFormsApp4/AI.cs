@@ -19,7 +19,7 @@ namespace WindowsFormsApp4
             for (int i = 0; i < dic["fc1.weight"].Length; i++)
             {
                 double sum = 0;
-                for (int j = 0; j < 25; j++)
+                for (int j = 0; j < dic["fc1.weight"][i].Length; j++)
                 {
                     sum += (data[j] * dic["fc1.weight"][i][j]);
                 }
