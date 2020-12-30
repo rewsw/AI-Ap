@@ -35,7 +35,7 @@ namespace WindowsFormsApp4
             sbd.Append(Data.area).Append(",").Append(Data.lenght).Append(",").Append(Data.second_area);
             swd.WriteLine(sbd);
             swd.Flush();
-            Console.WriteLine(Data.frame_id);
+           // Console.WriteLine(Data.frame_id);
         }
     }
 }

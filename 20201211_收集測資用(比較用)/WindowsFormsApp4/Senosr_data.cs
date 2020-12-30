@@ -112,6 +112,8 @@ namespace WindowsFormsApp4
         }
         public static Color GrayTonew_color_V(int val)
         {
+            val = (val < 1) ? 1 : val;
+            val = (val > 254) ? 254 : val;
             if (val == 0)
             {
                 return Color.FromArgb(255, 0, 0, 0);
@@ -142,6 +144,7 @@ namespace WindowsFormsApp4
             }
             else
             {
+               // Console.WriteLine(val);
                 val -= 210;
                 return Color.FromArgb(255, 0, 255, 127 - (int)(val * 2.7));
             }
