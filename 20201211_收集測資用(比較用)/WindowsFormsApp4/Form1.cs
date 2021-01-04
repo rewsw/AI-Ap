@@ -133,9 +133,9 @@ namespace WindowsFormsApp4
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_10_資料還沒旋轉的(目前主要測試用)\month_12_day_8_time_11_27\ckpt\weight.csv");
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_14_拿掉Palm做拇指按壓測試\month_12_day_11_time_17_26\ckpt\weight.csv");
             //supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_15_time_20_48\ckpt\weight.csv");
-            supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_23_time_11_29\ckpt\weight.csv");
+            supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_23增加大拇指資料做訓練\month_12_day_23_time_11_29\ckpt\weight.csv");
             //supervised_Hao_one = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net\month_12_day_16_time_15_59\ckpt\weight.csv");
-            supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
+           // supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
 
 
         }
