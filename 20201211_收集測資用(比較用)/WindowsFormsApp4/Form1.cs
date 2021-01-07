@@ -91,10 +91,12 @@ namespace WindowsFormsApp4
         int[,] class_array = new int[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         int[,] score_range = new int[,] { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
         StreamWriter csv_swriter;
+        StreamWriter csv_all_swriter;
+        StreamWriter csv_bitmap_swriter;
+
         string data_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\";
-        bool update_size = false;
+
         int frame_id = 0;
-        AI supervised_ori, supervised_Hao_one, supervised_Hao_two;
         DataTable dt;
         string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\Picture";
         string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH";
@@ -213,8 +215,20 @@ namespace WindowsFormsApp4
             sw.Flush();
             sw.Close();
             fs.Close();
+            fs = new FileStream(data_path + "all.csv", FileMode.Create, FileAccess.Write);
+            sw = new StreamWriter(fs);
+            sw.Flush();
+            sw.Close();
+            fs.Close();
+            fs = new FileStream(data_path + "bitmap.csv", FileMode.Create, FileAccess.Write);
+            sw = new StreamWriter(fs);
+            sw.Flush();
+            sw.Close();
+            fs.Close();
             #endregion
             csv_swriter = new StreamWriter(data_path + "data.csv", true);
+            csv_all_swriter = new StreamWriter(data_path + "all.csv", true);
+            csv_bitmap_swriter = new StreamWriter(data_path + "bitmap.csv", true);
             save_t = new Thread(new ThreadStart(save_picture));
             save_t.Start();
         }
@@ -226,6 +240,7 @@ namespace WindowsFormsApp4
         List<Touch_point> Alternative = new List<Touch_point>();
         List<save_frame> save_frames = new List<save_frame>();
         List<area> area_size_set = new List<area>();
+        bool Save_all = false;
         void callback_method(Socket sc)
         {
             int frame_number = 0;
@@ -247,9 +262,16 @@ namespace WindowsFormsApp4
                     now_r = (now_c == 45) ? now_r + 1 : now_r;
                     now_c = (now_c == 45) ? 0 : now_c + 1;
                 }
+                if (Save_all)
+                {
+                    csv_class.write_all_csv(ref csv_all_swriter, ref data,r,c);
+                    csv_class.write_bitmap_csv(ref csv_bitmap_swriter, ref data, r, c);
+             
+                }
                 frame_id++;
                 List<Save_data> sl = new List<Save_data>();
                 int label = 2;
+                List<Point> peak = new List<Point>();
                 area_size_set.Clear();
                 for (int i = 0; i < r; ++i)
                 {
@@ -278,9 +300,23 @@ namespace WindowsFormsApp4
                             int sum = get_Negative_value(ref ans, ref second_area);
                             sl.Add(new Save_data(ans.ToArray(), frame_id, data_path + "Picture", area.size, bevel_edge_lenght, j, i, second_area));
                             have_peak = true;
+                            peak.Add(new Point(j, i));
                             record_number++;
                         }
                     }
+                }
+                if (Save_all)
+                {
+                    using (StreamWriter swt = new StreamWriter(data_path+"pos.txt"))   //小寫TXT     
+                    {
+                        for(int i = 0;i< peak.Count; i++)
+                        {
+                            swt.WriteLine(peak[i].X + " " + peak[i].Y);
+                        }
+                        swt.Flush();
+                        swt.Close();
+                    }
+                    Save_all = false;
                 }
                 if (have_peak)
                 {
@@ -573,25 +609,22 @@ namespace WindowsFormsApp4
 
                 case Keys.NumPad4:
                     pic1_size = new Size(pictureBox1.Size.Width - 1, pictureBox1.Size.Height);
-                    update_size = true;
+//update_size = true;
                     break;
                 case Keys.NumPad6:
                     pic1_size = new Size(pictureBox1.Size.Width + 1, pictureBox1.Size.Height);
-                    update_size = true;
+                  //  update_size = true;
                     break;
                 case Keys.NumPad2:
                     pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height + 1);
-                    update_size = true;
+                   // update_size = true;
                     break;
                 case Keys.NumPad8:
                     pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height - 1);
-                    update_size = true;
+                  //  update_size = true;
                     break;
                 case Keys.S:
-                    if (big_node.Count >= 2 && !car.can_go)
-                    {
-                        car = new Car(big_node[0].X, big_node[0].Y, big_node[0].r, big_node[0].c, true, get_sub_point(big_node));
-                    }
+                    Save_all = true;
                     break;
                 case Keys.C:
 

@@ -37,5 +37,37 @@ namespace WindowsFormsApp4
             swd.Flush();
            // Console.WriteLine(Data.frame_id);
         }
+        public static void  write_all_csv(ref StreamWriter swd,ref Sensor_data[,] data,int row,int col)
+        {
+         
+            for (int i = 0; i < row; i++)
+            {
+                StringBuilder sbd = new StringBuilder();
+                for (int j = 0; j < col; j++)
+                {
+                    sbd.Append(data[i,j].value).Append(",");
+                }
+                swd.WriteLine(sbd);
+                swd.Flush();
+            }
+            
+           
+        }
+        public static void write_bitmap_csv(ref StreamWriter swd, ref Sensor_data[,] data, int row, int col)
+        {
+
+            for (int i = 0; i < row; i++)
+            {
+                StringBuilder sbd = new StringBuilder();
+                for (int j = 0; j < col; j++)
+                {
+                    sbd.Append((data[i, j].value>=38)?1:0).Append(",");
+                }
+                swd.WriteLine(sbd);
+                swd.Flush();
+            }
+
+
+        }
     }
 }
