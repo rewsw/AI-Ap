@@ -17,7 +17,7 @@ namespace WindowsFormsApp4
         public int area_label = 0; //if bigger than  threshold : 1 
         public int area_size = 0;// area size 
         public short value = 0;
-        static int R = 35, C = 46;
+        static int R = Form1.r, C = Form1.c;
         public int position_r, position_c;
         public bool is_peak = false;
         public Color draw_color;
@@ -79,6 +79,7 @@ namespace WindowsFormsApp4
                         num++;
                     }
                 }
+                Console.WriteLine("x " + s.x);
                 bitmap.Save(string.Format("{0}\\{1}_{2}_{3}_{4}_{5}_({6},{7}).png", s.path,s.frame_id,s.NN_output.ToString("F2"),s.area,s.lenght.ToString("F2"),s.second_area,s.x,s.y));
             }
             else
