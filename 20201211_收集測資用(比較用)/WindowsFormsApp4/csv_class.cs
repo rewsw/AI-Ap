@@ -61,7 +61,7 @@ namespace WindowsFormsApp4
                 StringBuilder sbd = new StringBuilder();
                 for (int j = 0; j < col; j++)
                 {
-                    sbd.Append((data[i, j].value>=38)?1:0).Append(",");
+                    sbd.Append((data[i, j].value>=Form1.peak)?1:0).Append(",");
                 }
                 swd.WriteLine(sbd);
                 swd.Flush();

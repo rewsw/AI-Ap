@@ -19,7 +19,7 @@ namespace WindowsFormsApp4
         public int area_label = 0; //if bigger than  threshold : 1 
         public int area_size = 0;// area size 
         public short value = 0;
-        static int R = 35, C = 46;
+        static int R = Form1.r, C = Form1.c;
         public int position_r, position_c;
         public bool is_peak = false;
         public Color draw_color;
@@ -192,7 +192,6 @@ namespace WindowsFormsApp4
         public void add_point_to_list(Point p)
         {
             draw_point.Insert(0, p);
-
         }
     }
 

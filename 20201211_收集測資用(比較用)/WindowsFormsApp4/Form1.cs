@@ -79,10 +79,11 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        int r = 35, c = 46;
+        public const int r = 32, c = 55;
+        public static int peak = 38;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
-        Sensor_data[,] data = new Sensor_data[35, 46];
+        Sensor_data[,] data = new Sensor_data[r, c];
         int p_w;
         int p_h;
         Car car = new Car(0, 0, 0, 0, false, new List<Point>());
@@ -259,8 +260,8 @@ namespace WindowsFormsApp4
                 {
                     Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
                     data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > 37) ? 1 : 0, 0); //add label and area size initliaize
-                    now_r = (now_c == 45) ? now_r + 1 : now_r;
-                    now_c = (now_c == 45) ? 0 : now_c + 1;
+                    now_r = (now_c == c-1) ? now_r + 1 : now_r;
+                    now_c = (now_c == c-1) ? 0 : now_c + 1;
                 }
                 if (Save_all)
                 {
@@ -475,7 +476,7 @@ namespace WindowsFormsApp4
             compare[] com = new compare[] { compare.more_equal, compare.more_equal, compare.more_equal, compare.more, compare.more_equal, compare.more, compare.more, compare.more };
 
             short mid = get_date(ref s_data, row, col).value;
-            if (mid < 38) return false;
+            if (mid < peak) return false;
 
             for (int d = 0; d < dirX.Length; ++d)
             {
@@ -658,6 +659,7 @@ namespace WindowsFormsApp4
         {
             csv_swriter.Flush();
             csv_swriter.Close();
+            System.Environment.Exit(System.Environment.ExitCode);
         }
 
         private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
@@ -765,8 +767,8 @@ namespace WindowsFormsApp4
                             //}else
                             g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
 
-                            row = (col == 45) ? row + 1 : row;
-                            col = (col == 45) ? 0 : col + 1;
+                            row = (col == c-1) ? row + 1 : row;
+                            col = (col == c-1) ? 0 : col + 1;
                         }
                         else
                         {
