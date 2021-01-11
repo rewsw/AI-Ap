@@ -96,7 +96,7 @@ namespace WindowsFormsApp4
         }
         bool record = false;
         public const int r = 43, c =75;
-        public int peak = 20;
+        public int peak = 15;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data = new Sensor_data[r, c];
@@ -276,7 +276,7 @@ namespace WindowsFormsApp4
                         if (PatternMatch(ref data, i, j)) //i 是 row j 是 col
                         {
 
-                            List<short> ans = get_arround(ref data, i, j);
+                            List<short> ans = get_arround_bigger_scale(ref data, i, j,2.7);
                             List<short> ans7x7 = get_arround7x7(ref data, i, j);
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
