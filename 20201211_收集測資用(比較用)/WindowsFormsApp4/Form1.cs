@@ -95,11 +95,11 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 42, c =74;
+        public const int r = 43, c =75;
         public int peak = 20;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
-        Sensor_data[,] data = new Sensor_data[r+1, c+1];
+        Sensor_data[,] data = new Sensor_data[r, c];
         int p_w;
         int p_h;
         Car car = new Car(0, 0, 0, 0, false, new List<Point>());
@@ -135,7 +135,7 @@ namespace WindowsFormsApp4
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_14_拿掉Palm做拇指按壓測試\month_12_day_11_time_17_26\ckpt\weight.csv");
             //supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_15_time_20_48\ckpt\weight.csv");
             supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_23增加大拇指資料做訓練\month_12_day_23_time_11_29\ckpt\weight.csv");
-            supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_1_day_8_time_11_12\ckpt\weight.csv");
+          //  supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_1_day_8_time_11_12\ckpt\weight.csv");
 
 
         }
@@ -210,10 +210,10 @@ namespace WindowsFormsApp4
             dataGridView2.Rows[0].Cells[3].Value = "輸出";
 
             dataGridView2.Rows[1].Cells[0].Value = "數量(new)";
-            dataGridView2.Rows[2].Cells[0].Value = "<0.1 or >0.9";
+            dataGridView2.Rows[2].Cells[0].Value = "<0.3 or >0.95";
             dataGridView2.Rows[3].Cells[0].Value = "不定";
             dataGridView2.Rows[4].Cells[0].Value = "數量(ori)";
-            dataGridView2.Rows[5].Cells[0].Value = "<0.1 or >0.9";
+            dataGridView2.Rows[5].Cells[0].Value = "<0.3 or >0.95";
             dataGridView2.Rows[6].Cells[0].Value = "不定";
 
             this.KeyPreview = true;
@@ -258,8 +258,8 @@ namespace WindowsFormsApp4
                 {
                     Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
                     data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans >= peak) ? 1 : 0, 0); //add label and area size initliaize
-                    now_r = (now_c == c) ? now_r + 1 : now_r;
-                    now_c = (now_c == c) ? 0 : now_c + 1;
+                    now_r = (now_c == c-1) ? now_r + 1 : now_r;
+                    now_c = (now_c == c-1) ? 0 : now_c + 1;
                 }
                 frame_id++;
                 List<Save_data> H = new List<Save_data>();
@@ -272,10 +272,11 @@ namespace WindowsFormsApp4
                 {
                     for (int j = 0; j < c; ++j)
                     {
+                       // Console.WriteLine(i + " " + j);
                         if (PatternMatch(ref data, i, j)) //i 是 row j 是 col
                         {
 
-                            List<short> ans = get_arround(ref data, i, j) ;
+                            List<short> ans = get_arround(ref data, i, j);
                             List<short> ans7x7 = get_arround7x7(ref data, i, j);
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
@@ -308,8 +309,6 @@ namespace WindowsFormsApp4
                                 area = area_size_set[data[i, j].area_label - 2];
                             }
                             #endregion
-
-                            ans = get_arround(ref data, i, j);
 
                             ans = get_arround(ref data, i, j);
 
@@ -623,12 +622,8 @@ namespace WindowsFormsApp4
                                     }
                                 }
                             }
-
                             #endregion
                             have_peak = true;
-
-                            have_peak = true;
-
                         }
                     }
                 }
@@ -797,7 +792,31 @@ namespace WindowsFormsApp4
             }
             return ans;
         }
+        List<short> get_arround_bigger_scale(ref Sensor_data[,] s_data, int row, int col,double beta)
+        {
+            List<short> ans = new List<short>();
+            for (int y = -2; y <= +2; ++y)
+            {
+                for (int x = -2; x <= +2; ++x)
+                {
+                    int tr = row + y;
+                    int tc = col + x;
+                    if (!Sensor_data.BoundaryCheck(tr, tc))
+                    {
+                        ans.Add(0);
+                    }
+                    else
+                    {
+                        short sig = (short)(get_date(ref s_data, tr, tc).value*beta);
+                        //*bp = (sig <= 0)? 0: sig;
 
+                        ans.Add(sig);
+                    }
+
+                }
+            }
+            return ans;
+        }
         List<short> get_arround_sharp(ref Sensor_data[,] s_data, bool edge_converlution,int row, int col)
         {
             List<short> ans = new List<short>();
@@ -1080,6 +1099,11 @@ namespace WindowsFormsApp4
             //  pictureBox1.Invalidate();
         }
 
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            System.Environment.Exit(System.Environment.ExitCode);
+        }
+
         private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
         {
 
@@ -1185,8 +1209,8 @@ namespace WindowsFormsApp4
                             //}else
                             g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
 
-                            row = (col == c) ? row + 1 : row;
-                            col = (col == c) ? 0 : col + 1;
+                            row = (col == c-1) ? row + 1 : row;
+                            col = (col == c-1) ? 0 : col + 1;
                         }
                         else
                         {
