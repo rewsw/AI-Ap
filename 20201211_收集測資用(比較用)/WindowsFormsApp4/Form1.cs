@@ -79,7 +79,7 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 32, c = 55;
+        public const int r = 23, c = 30;
         public static int peak = 38;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
@@ -108,7 +108,7 @@ namespace WindowsFormsApp4
             for (int i = 0; i < 100; i++)
             {
 
-                Rand_color[i] = Color.FromArgb(rand.Next(0, 254), rand.Next(0, 254), rand.Next(0, 25));
+                Rand_color[i] = Color.FromArgb(rand.Next(0, 125), rand.Next(0, 254), rand.Next(0, 100));
             }
             Console.WriteLine(Rand_color[0].R + " " + Rand_color[0].G + " " + Rand_color[0].B);
 
@@ -121,9 +121,9 @@ namespace WindowsFormsApp4
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_10_資料還沒旋轉的(目前主要測試用)\month_12_day_8_time_11_27\ckpt\weight.csv");
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_14_拿掉Palm做拇指按壓測試\month_12_day_11_time_17_26\ckpt\weight.csv");
             //supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_15_time_20_48\ckpt\weight.csv");
-           // supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_23_time_11_29\ckpt\weight.csv");
+            // supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_23_time_11_29\ckpt\weight.csv");
             //supervised_Hao_one = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net\month_12_day_16_time_15_59\ckpt\weight.csv");
-           // supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
+            // supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
 
 
         }
@@ -260,14 +260,14 @@ namespace WindowsFormsApp4
                 {
                     Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
                     data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > 37) ? 1 : 0, 0); //add label and area size initliaize
-                    now_r = (now_c == c-1) ? now_r + 1 : now_r;
-                    now_c = (now_c == c-1) ? 0 : now_c + 1;
+                    now_r = (now_c == c - 1) ? now_r + 1 : now_r;
+                    now_c = (now_c == c - 1) ? 0 : now_c + 1;
                 }
                 if (Save_all)
                 {
-                    csv_class.write_all_csv(ref csv_all_swriter, ref data,r,c);
+                    csv_class.write_all_csv(ref csv_all_swriter, ref data, r, c);
                     csv_class.write_bitmap_csv(ref csv_bitmap_swriter, ref data, r, c);
-             
+
                 }
                 frame_id++;
                 List<Save_data> sl = new List<Save_data>();
@@ -308,9 +308,9 @@ namespace WindowsFormsApp4
                 }
                 if (Save_all)
                 {
-                    using (StreamWriter swt = new StreamWriter(data_path+"pos.txt"))   //小寫TXT     
+                    using (StreamWriter swt = new StreamWriter(data_path + "pos.txt"))   //小寫TXT     
                     {
-                        for(int i = 0;i< peak.Count; i++)
+                        for (int i = 0; i < peak.Count; i++)
                         {
                             swt.WriteLine(peak[i].X + " " + peak[i].Y);
                         }
@@ -373,7 +373,7 @@ namespace WindowsFormsApp4
 
             for (int i = 0; i < 8; i++)
             {
-                if (dirY[i] + y >= 0 && dirY[i] + y < 35 && dirX[i] + x >= 0 && dirX[i] + x < 46 && pixel[dirY[i] + y, dirX[i] + x].area_label == 1)
+                if (dirY[i] + y >= 0 && dirY[i] + y < Form1.r && dirX[i] + x >= 0 && dirX[i] + x < Form1.c && pixel[dirY[i] + y, dirX[i] + x].area_label == 1)
                 {
                     pixel[dirY[i] + y, dirX[i] + x].area_label = label;
                     seed_filling(ref pixel, dirX[i] + x, dirY[i] + y, label, ref area_size);
@@ -610,19 +610,19 @@ namespace WindowsFormsApp4
 
                 case Keys.NumPad4:
                     pic1_size = new Size(pictureBox1.Size.Width - 1, pictureBox1.Size.Height);
-//update_size = true;
+                    //update_size = true;
                     break;
                 case Keys.NumPad6:
                     pic1_size = new Size(pictureBox1.Size.Width + 1, pictureBox1.Size.Height);
-                  //  update_size = true;
+                    //  update_size = true;
                     break;
                 case Keys.NumPad2:
                     pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height + 1);
-                   // update_size = true;
+                    // update_size = true;
                     break;
                 case Keys.NumPad8:
                     pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height - 1);
-                  //  update_size = true;
+                    //  update_size = true;
                     break;
                 case Keys.S:
                     Save_all = true;
@@ -767,8 +767,8 @@ namespace WindowsFormsApp4
                             //}else
                             g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
 
-                            row = (col == c-1) ? row + 1 : row;
-                            col = (col == c-1) ? 0 : col + 1;
+                            row = (col == c - 1) ? row + 1 : row;
+                            col = (col == c - 1) ? 0 : col + 1;
                         }
                         else
                         {

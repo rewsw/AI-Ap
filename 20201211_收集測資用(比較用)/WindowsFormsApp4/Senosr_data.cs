@@ -144,7 +144,7 @@ namespace WindowsFormsApp4
             }
             else
             {
-               // Console.WriteLine(val);
+                // Console.WriteLine(val);
                 val -= 210;
                 return Color.FromArgb(255, 0, 255, 127 - (int)(val * 2.7));
             }
