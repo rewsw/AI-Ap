@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4292B61B-F665-4775-9FDA-815CD69824FE}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>WindowsFormsApp4</RootNamespace>
-    <AssemblyName>WindowsFormsApp4</AssemblyName>
+    <RootNamespace>Collect_AI_Data</RootNamespace>
+    <AssemblyName>Collect_AI_Data</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
