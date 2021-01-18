@@ -79,7 +79,7 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 35, c = 46;
+        public const int r = 23, c = 30;
         public static int peak = 38;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
@@ -329,7 +329,7 @@ namespace WindowsFormsApp4
                 {
                     BeginInvoke(new MethodInvoker(() =>
                     {
-                        Fps_lb.Text = "Record number : " + record_number;
+                        Fps_lb.Text = "Number number : " + record_number;
                     }));
                 }
                 catch (InvalidOperationException ex)
