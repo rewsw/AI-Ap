@@ -20,7 +20,7 @@ namespace WindowsFormsApp4
     {
         public enum state : int
         {
-            Normal, draw
+            Normal, draw,Base
         }
 
         public struct save_frame
@@ -79,8 +79,8 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 23, c = 30;
-        public static int peak = 38;
+        public const int r = 43, c = 75;
+        public static int peak = 20;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data = new Sensor_data[r, c];
@@ -91,12 +91,16 @@ namespace WindowsFormsApp4
         List<Point> Draw_point = new List<Point>();
         int[,] class_array = new int[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         int[,] score_range = new int[,] { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+        int[,] BASE = new int[r,c];
         StreamWriter csv_swriter;
         StreamWriter csv_all_swriter;
         StreamWriter csv_bitmap_swriter;
-
+        int Max_Diff = 500, Min_Diff = -500;
+        int Max_ADiff = 2000, Min_ADiff = 1000;
+        int alpha = 200;
+        int AVG_times = 10;
         string data_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\";
-
+        int Base_time = 0;
         int frame_id = 0;
         DataTable dt;
         string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\Picture";
@@ -124,7 +128,7 @@ namespace WindowsFormsApp4
             // supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_23_time_11_29\ckpt\weight.csv");
             //supervised_Hao_one = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net\month_12_day_16_time_15_59\ckpt\weight.csv");
             // supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
-
+          //  OpenCSV(ref BASE,@"\\10.1.2.88\jack2\David\Base\21.5_90k_Base.csv");
 
         }
         Thread t;
@@ -137,73 +141,34 @@ namespace WindowsFormsApp4
             socket.Bind(server_ad);
             t = new Thread(new ThreadStart(delegate { callback_method(socket); }));
             t.Start();
-
-            pictureBox1.Location = new Point(0, 0);
-            pictureBox1.Size = new Size(this.Size.Width - 300, this.Height + 30);
+            MAX_Diff_tb.Text = Max_Diff.ToString();
+            MIN_Diff_tb.Text = Min_Diff.ToString();
+            MAX_ADiff_tb.Text = Max_ADiff.ToString();
+            MIN_ADiff_tb.Text = Min_ADiff.ToString();
+            pictureBox1.Location = new Point(5, 5);
+            pictureBox1.Size = new Size(this.Size.Width - 300, this.Height - 100);
             pictureBox2.Location = new Point(0, 0);
             pictureBox2.Size = pictureBox1.Size;
             pictureBox2.Parent = pictureBox1;
             pictureBox2.BackColor = Color.Transparent;
 
+            BASE_bar.Location = new Point((int)(this.Size.Width*0.87), (int)(this.Size.Height*0.1));
+            BASE_bar.Size = new Size((int)(this.Size.Width * 0.10), (int)(this.Size.Height * 0.02));
+            BASE_bar.Maximum = AVG_times;
+            data_lbox.Location = new Point((int)(this.Size.Width * 0.87), (int)(this.Size.Height * 0.15));
+            data_lbox.Size = new Size((int)(this.Size.Width * 0.10), (int)(this.Size.Height * 0.5));
 
-            Fps_lb.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.95));
+            label1.Location = new Point((int)(this.Size.Width * 0.87), (int)(this.Size.Height * 0.7));
+            label2.Location = new Point((int)(this.Size.Width * 0.9), (int)(this.Size.Height * 0.7));
+            label3.Location = new Point((int)(this.Size.Width * 0.93), (int)(this.Size.Height * 0.7));
+            label4.Location = new Point((int)(this.Size.Width * 0.96), (int)(this.Size.Height * 0.7));
 
-            dataGridView1.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.1));
-            dataGridView1.Size = new Size((int)(this.Width * 0.15), (int)(this.Height * 0.6));
+            MAX_Diff_tb.Location = new Point((int)(this.Size.Width * 0.87), (int)(this.Size.Height * 0.72));
+            MIN_Diff_tb.Location = new Point((int)(this.Size.Width * 0.9), (int)(this.Size.Height * 0.72));
+            MAX_ADiff_tb.Location = new Point((int)(this.Size.Width * 0.93), (int)(this.Size.Height * 0.72));
+            MIN_ADiff_tb.Location = new Point((int)(this.Size.Width * 0.96), (int)(this.Size.Height * 0.72));
 
-            dataGridView2.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.75));
-            dataGridView2.Size = new Size((int)(this.Width * 0.15), (int)(this.Height * 0.2));
-
-            dataGridView1.ColumnCount = 3;
-            dataGridView1.RowCount = 11;
-            dataGridView1.RowHeadersVisible = false;
-            dataGridView1.ColumnHeadersVisible = false;
-            dataGridView1.Columns[0].Width = dataGridView1.Width / 3;
-            dataGridView1.Columns[1].Width = dataGridView1.Width / 3;
-            dataGridView1.Columns[2].Width = dataGridView1.Width / 3;
-            for (int i = 0; i < 11; i++)
-            {
-                dataGridView1.Rows[i].Height = dataGridView1.Height / 11 - 1;
-            }
-            double f = 0.0;
-            for (int i = 1; i < 11; i++)
-            {
-
-                dataGridView1.Rows[i].Cells[0].Value = f.ToString("F1") + " ~ " + (f + 0.1).ToString("F1");
-                f += 0.1;
-            }
-            dataGridView1.DataSource = dt;
-            dataGridView1.Rows[0].Cells[0].Value = "數級";
-            dataGridView1.Rows[0].Cells[1].Value = "New";
-            dataGridView1.Rows[0].Cells[2].Value = "Ori";
-            dataGridView2.ColumnCount = 4;
-            dataGridView2.RowCount = 7;
-            dataGridView2.RowHeadersVisible = false;
-            dataGridView2.ColumnHeadersVisible = false;
-
-            for (int i = 0; i < 4; i++)
-            {
-                dataGridView2.Columns[i].Width = dataGridView2.Width / 4 - 4;
-            }
-            dataGridView2.Rows[0].Height = dataGridView2.Height / 7;
-            dataGridView2.Rows[1].Height = dataGridView2.Height / 7;
-            dataGridView2.Rows[2].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[3].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[4].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[5].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[6].Height = dataGridView2.Height / 7 - 1;
-
-            dataGridView2.Rows[0].Cells[1].Value = "水";
-            dataGridView2.Rows[0].Cells[2].Value = "不定";
-            dataGridView2.Rows[0].Cells[3].Value = "手";
-
-            dataGridView2.Rows[1].Cells[0].Value = "數量(new)";
-            dataGridView2.Rows[2].Cells[0].Value = "<0.1 or >0.9";
-            dataGridView2.Rows[3].Cells[0].Value = "不定";
-            dataGridView2.Rows[4].Cells[0].Value = "數量(ori)";
-            dataGridView2.Rows[5].Cells[0].Value = "<0.1 or >0.9";
-            dataGridView2.Rows[6].Cells[0].Value = "不定";
-
+            Result_lb.Location = new Point((int)(this.Size.Width * 0.87), (int)(this.Size.Height * 0.8));
             this.KeyPreview = true;
             pic1_size = new Size(pictureBox1.Width, pictureBox1.Height);
             pic2_size = new Size(pictureBox2.Width, pictureBox2.Height);
@@ -233,7 +198,7 @@ namespace WindowsFormsApp4
             save_t = new Thread(new ThreadStart(save_picture));
             save_t.Start();
         }
-
+        bool BASE_OK = false;
         bool have_peak;
         int supervised_num = 0;
         Thread save_t;
@@ -241,6 +206,7 @@ namespace WindowsFormsApp4
         List<Touch_point> Alternative = new List<Touch_point>();
         List<save_frame> save_frames = new List<save_frame>();
         List<area> area_size_set = new List<area>();
+        
         bool Save_all = false;
         void callback_method(Socket sc)
         {
@@ -249,94 +215,135 @@ namespace WindowsFormsApp4
             Stopwatch sw = new Stopwatch();
             while (true)
             {
-                //sw.Reset();
-                //sw.Start();
+                sw.Reset();
+                sw.Start();
                 int dataLength;
                 byte[] myBufferBytes = new byte[100000];
                 dataLength = sc.Receive(myBufferBytes);
                 frame_number++;
                 int now_r = 0, now_c = 0;
-                for (int i = 0; i < dataLength; i = i + 2)
+                if (Base_time < AVG_times)
                 {
-                    Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
-                    data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > 37) ? 1 : 0, 0); //add label and area size initliaize
-                    now_r = (now_c == c - 1) ? now_r + 1 : now_r;
-                    now_c = (now_c == c - 1) ? 0 : now_c + 1;
-                }
-                if (Save_all)
-                {
-                    csv_class.write_all_csv(ref csv_all_swriter, ref data, r, c);
-                    csv_class.write_bitmap_csv(ref csv_bitmap_swriter, ref data, r, c);
-
-                }
-                frame_id++;
-                List<Save_data> sl = new List<Save_data>();
-                int label = 2;
-                List<Point> peak = new List<Point>();
-                area_size_set.Clear();
-                for (int i = 0; i < r; ++i)
-                {
-                    for (int j = 0; j < c; ++j)
+                    for (int i = 0; i < dataLength; i = i + 2)
                     {
-                        if (PatternMatch(ref data, i, j)) //i 是 row j 是 col
+                        Int16 r_data = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
+                        BASE[now_r, now_c] += r_data;
+                        now_r = (now_c == c - 1) ? now_r + 1 : now_r;
+                        now_c = (now_c == c - 1) ? 0 : now_c + 1;
+                        
+                    }
+                    Base_time++;
+                    BeginInvoke(new MethodInvoker(() =>
+                    {
+                        BASE_bar.Value++;
+                    }));
+                    continue;
+                }
+                now_r = 0;
+                now_c = 0;
+                if (Base_time == AVG_times)
+                {
+          
+                    
+                    for (int i = 0; i < r; ++i)
+                    {
+                        for (int j = 0; j < c; ++j)
                         {
-
-                            List<short> ans = get_arround(ref data, i, j);
-                            area area = new area(0);
-
-                            if (data[i, j].area_label == 1) //caluate area if is label == 1
-                            {
-
-                                seed_filling(ref data, j, i, label, ref area);
-                                area_size_set.Add(area);
-                                label++;
-                            }
-                            else //already caluate area 
-                            {
-                                area = area_size_set[data[i, j].area_label - 2];
-                            }
-                            double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
-                            ans = get_arround7x7(ref data, i, j);
-                            int second_area = 0;
-                            int sum = get_Negative_value(ref ans, ref second_area);
-                            sl.Add(new Save_data(ans.ToArray(), frame_id, data_path + "Picture", area.size, bevel_edge_lenght, j, i, second_area));
-                            have_peak = true;
-                            peak.Add(new Point(j, i));
-                            record_number++;
+                            BASE[i, j] /= AVG_times;
                         }
                     }
+
+                    BASE_OK = true;
+                    Base_time++;
                 }
-                if (Save_all)
+                if (BASE_OK)
                 {
-                    using (StreamWriter swt = new StreamWriter(data_path + "pos.txt"))   //小寫TXT     
+                    int diff_sum = 0;
+                    int diff_abs_sum = 0;
+                    for (int i = 0; i < dataLength; i = i + 2)
                     {
-                        for (int i = 0; i < peak.Count; i++)
-                        {
-                            swt.WriteLine(peak[i].X + " " + peak[i].Y);
-                        }
-                        swt.Flush();
-                        swt.Close();
+                        Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
+                        ans = (Int16)(alpha - ans * (alpha / (double)BASE[now_r, now_c]));
+                        diff_sum += ans;
+                        diff_abs_sum += Math.Abs(ans);
+                        data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > 37) ? 1 : 0, 0); //add label and area size initliaize
+                        now_r = (now_c == c - 1) ? now_r + 1 : now_r;
+                        now_c = (now_c == c - 1) ? 0 : now_c + 1;
                     }
-                    Save_all = false;
+                    bool have_peak = false;
+                    for(int i = 0; i < r; i++)
+                    {
+                        for(int j = 0; j < c; j++)
+                        {
+                            if(PatternMatch(ref data, i, j))
+                            {
+                                data[i, j].is_peak = true;
+                                have_peak = true;
+                            }
+                        }
+                    }
+                    if (!have_peak)
+                    {
+                        if (diff_sum > Max_Diff || diff_sum < Min_Diff || diff_abs_sum > Max_ADiff || diff_abs_sum < Min_ADiff)
+                        {
+                            Result_lb.BeginInvoke(new MethodInvoker(() =>
+                            {
+                                Result_lb.Text = " Dectect Noise";
+                                Result_lb.ForeColor = Color.Red;
+                            }));
+                        }
+                        else//no noise
+                        {
+                            Result_lb.BeginInvoke(new MethodInvoker(() =>
+                            {
+                                Result_lb.Text = "Normal";
+                                Result_lb.ForeColor = Color.Green;
+                            }));
+                        }
+                    }
+                    else
+                    {
+                        Result_lb.BeginInvoke(new MethodInvoker(() =>
+                        {
+                            Result_lb.Text = "Peak";
+                            Result_lb.ForeColor = Color.Blue;
+                        }));
+                    }
+                    if (Save_all)
+                    {
+                        csv_class.write_all_csv(ref csv_all_swriter, ref data, r, c);
+                        csv_class.write_bitmap_csv(ref csv_bitmap_swriter, ref data, r, c);
+                    }
+                    frame_id++;
+                    try
+                    {
+                        data_lbox.BeginInvoke(new MethodInvoker(() =>
+                        {
+                            data_lbox.Items.Add(string.Format("Diff Sum {0}  Diff abs Sum {1}", diff_sum, diff_abs_sum));
+                            this.data_lbox.TopIndex =
+                                            this.data_lbox.Items.Count - (int)(this.data_lbox.Height / this.data_lbox.ItemHeight);
+                        }));
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+
+                    }
+                    pictureBox1.Invalidate();
                 }
-                if (have_peak)
-                {
-                    save_frames.Add(new save_frame(sl.ToArray()));
-                    have_peak = false;
-                }
+                sw.Stop();
                 double fps = sw.ElapsedMilliseconds;
                 try
                 {
                     BeginInvoke(new MethodInvoker(() =>
                     {
-                        Fps_lb.Text = "Number number : " + record_number;
+                        this.Text = "Noise Detect Fps : " + (1 / fps * 1000.0).ToString("F2");
                     }));
                 }
                 catch (InvalidOperationException ex)
                 {
 
                 }
-                pictureBox1.Invalidate();
+                
             }
         }
         double get_dis(Touch_point a, Point p)
@@ -642,11 +649,16 @@ namespace WindowsFormsApp4
                     //ans_lb.Text = "ans : " + string.Format("{.2f}", (record_lbox.Items.Count / (double)(record_lbox.Items.Count + no_record_lbox.Items.Count)) * 100.0);
                     //  no_record_lbox.Items.Clear();
                     //record_lbox.Items.Clear();
-
                     break;
                 case Keys.D:
                     Now_state = state.draw;
                     Draw_point.Clear();
+                    break;
+                case Keys.B:
+                    Now_state = state.Base;
+                    break;
+                case Keys.N:
+                    Now_state = state.Normal;
                     break;
                 default:
                     break;
@@ -674,6 +686,46 @@ namespace WindowsFormsApp4
                 //   node_lbox.Items.Add(st);
             }
             //  pictureBox2.Invalidate();
+        }
+
+        private void MIN_Diff_tb_TextChanged(object sender, EventArgs e)
+        {
+            try {
+                Min_Diff = int.Parse(MIN_Diff_tb.Text);
+            } catch (FormatException ex) {
+                Min_Diff = 0;
+            }
+        }
+
+        private void MAX_Diff_tb_TextChanged(object sender, EventArgs e)
+        {
+            try {
+                Max_Diff = int.Parse(MAX_Diff_tb.Text);
+            } catch (FormatException ex) {
+                Max_Diff = 0;
+            }
+            
+        }
+
+        private void MAX_ADiff_tb_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Max_ADiff = int.Parse(MAX_ADiff_tb.Text);
+            }catch(FormatException ex) {
+                Max_ADiff = 0; 
+            }
+        }
+
+        private void MIN_ADiff_tb_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Min_ADiff = int.Parse(MIN_ADiff_tb.Text);
+            }
+            catch (FormatException ex) {
+                Min_ADiff = 0;
+            }
         }
 
         private void pictureBox2_Paint(object sender, PaintEventArgs e)
@@ -745,36 +797,37 @@ namespace WindowsFormsApp4
             {
                 case state.Normal:
                     int row = 0, col = 0;
-                    for (int i = 0; i < data.Length; i++)
-                    {
-                        if (data[row, col] != null)
+                        for (int i = 0; i < data.Length; i++)
                         {
-                            String drawString = data[row, col].value.ToString();
-
-                            Font drawFont = new Font("Arial", 8);
-                            SolidBrush drawBrush = new SolidBrush(Color.Black);
-                            if (data[row, col].area_label > 1)
+                            if (data[row, col] != null)
                             {
-                                g.FillRectangle(new SolidBrush(Rand_color[data[row, col].area_label]), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                String drawString = data[row, col].value.ToString();
+
+                                Font drawFont = new Font("Arial", 8);
+                                SolidBrush drawBrush = new SolidBrush(Color.Black);
+                                if (data[row, col].area_label > 1)
+                                {
+                                    g.FillRectangle(new SolidBrush(Rand_color[data[row, col].area_label]), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                }
+                                else
+                                    g.FillRectangle(new SolidBrush(data[row, col].draw_color), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                if (data[row, col].is_peak)
+                                    g.DrawEllipse(new Pen((data[row, col].Class == Sensor_data.AI_class.Water) ? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                //if (i == 0)
+                                //{
+                                //    g.DrawString(frame_id.ToString(), drawFont, drawBrush, new PointF(0 * p_w + (p_w / 3), 0 * p_h + (p_h / 3)));
+                                //}else
+                                g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3)-5, row * p_h + (p_h / 3)));
+
+                                row = (col == c - 1) ? row + 1 : row;
+                                col = (col == c - 1) ? 0 : col + 1;
                             }
                             else
-                                g.FillRectangle(new SolidBrush(data[row, col].draw_color), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
-                            if (data[row, col].is_peak)
-                                g.DrawEllipse(new Pen((data[row, col].Class == Sensor_data.AI_class.Water) ? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
-                            //if (i == 0)
-                            //{
-                            //    g.DrawString(frame_id.ToString(), drawFont, drawBrush, new PointF(0 * p_w + (p_w / 3), 0 * p_h + (p_h / 3)));
-                            //}else
-                            g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
-
-                            row = (col == c - 1) ? row + 1 : row;
-                            col = (col == c - 1) ? 0 : col + 1;
+                            {
+                                break;
+                            }
                         }
-                        else
-                        {
-                            break;
-                        }
-                    }
+                    
                     for (int i = 0; i < area_size_set.Count; i++)
                     {
                         g.DrawLine(new Pen(Color.Red, 2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
@@ -793,6 +846,46 @@ namespace WindowsFormsApp4
                     break;
                 case state.draw:
                     break;
+                case state.Base:
+                    int B_row = 0, B_col = 0;
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        if (BASE[B_row, B_col] != null)
+                        {
+                            String drawString = BASE[B_row, B_col].ToString();
+
+                            Font drawFont = new Font("Arial", 8);
+                            SolidBrush drawBrush = new SolidBrush(Color.Black);
+                           
+                            g.FillRectangle(new SolidBrush(data[B_row, B_col].draw_color), new Rectangle(data[B_row, B_col].position_c * p_w, data[B_row, B_col].position_r * p_h, p_w, p_h));
+                            
+                            g.DrawString(drawString, drawFont, drawBrush, new PointF(B_col * p_w + (p_w / 3), B_row * p_h + (p_h / 3)));
+
+                            B_row = (B_col == c - 1) ? B_row + 1 : B_row;
+                            B_col = (B_col == c - 1) ? 0 : B_col + 1;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    for (int i = 0; i < area_size_set.Count; i++)
+                    {
+                        g.DrawLine(new Pen(Color.Red, 2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
+                            area_size_set[i].max_x * p_w + (p_w / 3), area_size_set[i].max_y * p_h + (p_h / 3));
+                        // Console.WriteLine(String.Format("{0} {1} {2} {3}", area_size_set[i].min_x, area_size_set[i].min_y, area_size_set[i].max_x, area_size_set[i].max_y));
+                    }
+                    for (int i = 0; i <= r; i++)
+                    {
+                        g.DrawLine(new Pen(Color.Black), 0, i * p_h, p_w * c, i * p_h);
+
+                    }
+                    for (int j = 0; j <= c; j++)
+                    {
+                        g.DrawLine(new Pen(Color.Black), j * p_w, 0, j * p_w, p_h * r);
+                    }
+                    break;
                 default:
                     break;
 
@@ -805,6 +898,42 @@ namespace WindowsFormsApp4
             ans.y = left.z * right.x - left.x * right.z;
             ans.z = left.x * right.y - left.y * right.x;
             return ans;
+        }
+        public void OpenCSV(ref int[,] array ,string filePath)
+        {
+          
+            FileStream fs = new FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            StreamReader sr = new StreamReader(fs, Encoding.UTF8);
+
+            string strLine = "";
+
+            string[] aryLine;
+            int row = 0;
+            while ((strLine = sr.ReadLine()) != null)
+            {
+                aryLine = strLine.Split(',');
+               
+               for (int j = 0; j < aryLine.Length; j++)
+               {
+                    try
+                    {
+                        BASE[row, j] = (int)double.Parse(aryLine[j]);
+                    }
+                    catch (FormatException ex)
+                    {
+                        Console.WriteLine(aryLine[j]);
+                    }
+                }
+    
+                row++;
+            }
+            //if (aryLine != null && aryLine.Length > 0)
+            //{
+            //    dt.DefaultView.Sort = tableHead[2] + " " + "DESC";
+            //}
+            sr.Close();
+            fs.Close();
+
         }
     }
 }
