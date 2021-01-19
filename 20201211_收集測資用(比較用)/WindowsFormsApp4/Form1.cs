@@ -79,8 +79,8 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 23, c = 30;
-        public static int peak = 38;
+        public const int r = 43, c = 75;
+        public static int peak = 15;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data = new Sensor_data[r, c];
@@ -138,9 +138,9 @@ namespace WindowsFormsApp4
             t = new Thread(new ThreadStart(delegate { callback_method(socket); }));
             t.Start();
 
-            pictureBox1.Location = new Point(0, 0);
-            pictureBox1.Size = new Size(this.Size.Width - 300, this.Height + 30);
-            pictureBox2.Location = new Point(0, 0);
+            pictureBox1.Location = new Point(5, 5);
+            pictureBox1.Size = new Size(this.Size.Width - 300, this.Height - 50);
+            pictureBox2.Location = new Point(5, 5);
             pictureBox2.Size = pictureBox1.Size;
             pictureBox2.Parent = pictureBox1;
             pictureBox2.BackColor = Color.Transparent;
@@ -259,7 +259,7 @@ namespace WindowsFormsApp4
                 for (int i = 0; i < dataLength; i = i + 2)
                 {
                     Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
-                    data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > 37) ? 1 : 0, 0); //add label and area size initliaize
+                    data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > Form1.peak-1) ? 1 : 0, 0); //add label and area size initliaize
                     now_r = (now_c == c - 1) ? now_r + 1 : now_r;
                     now_c = (now_c == c - 1) ? 0 : now_c + 1;
                 }
