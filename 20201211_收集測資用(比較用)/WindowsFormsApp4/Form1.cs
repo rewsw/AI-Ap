@@ -338,7 +338,7 @@ namespace WindowsFormsApp4
 
                                         int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
                                         int sum = get_Negative_value(ref ans7x7, ref second_area);
-                                        if (sum < -40)
+                                        if (sum < -50)
                                         {
                                             class_array[5, 0]++;
                                             class_array[3, 0]++;
