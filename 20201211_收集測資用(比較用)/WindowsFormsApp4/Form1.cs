@@ -95,8 +95,8 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 35, c =46;
-        public int peak = 38;
+        public const int r = 43, c =75;
+        public int peak = 15;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data = new Sensor_data[r, c];
@@ -134,7 +134,10 @@ namespace WindowsFormsApp4
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_10_資料還沒旋轉的(目前主要測試用)\month_12_day_8_time_11_27\ckpt\weight.csv");
             // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_14_拿掉Palm做拇指按壓測試\month_12_day_11_time_17_26\ckpt\weight.csv");
             //supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_15_time_20_48\ckpt\weight.csv");
-            supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_23增加大拇指資料做訓練\month_12_day_23_time_11_29\ckpt\weight.csv");
+
+           supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_23增加大拇指資料做訓練\month_12_day_23_time_11_29\ckpt\weight.csv");
+
+         //   supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2021_01_15_訓練資料Normalize\month_1_day_14_time_18_28\ckpt\weight.csv");
             //supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_1_day_14_time_18_28\ckpt\weight.csv");
             //  supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_1_day_8_time_11_12\ckpt\weight.csv");
 
@@ -276,8 +279,9 @@ namespace WindowsFormsApp4
                         if (PatternMatch(ref data, i, j)) //i 是 row j 是 col
                         {
 
-                            List<short> ans = get_arround(ref data, i, j);
-                            List<short> ans7x7 = get_arround7x7(ref data, i, j);
+                          //  List<double> ans_n = get_arround(ref data, i, j,30,-30);
+                            List<short> ans = get_arround(ref data, i, j, 3.3);
+                            List<short> ans7x7 = get_arround7x7(ref data, i, j,3.3);
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
                             int edge_level = -1;
@@ -294,8 +298,8 @@ namespace WindowsFormsApp4
                             }
                             
                             double[] output_ori = supervised_ori.calculate(ans.ToArray());
-                            score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
 
+                            score_range[1, (output_ori[0] * 10 >= 10) ? 9 : (int)(output_ori[0] * 10)]++;
                             #region Caluate Area
                             if (data[i, j].area_label == 1) //caluate area if is label == 1
                             {
@@ -309,9 +313,6 @@ namespace WindowsFormsApp4
                                 area = area_size_set[data[i, j].area_label - 2];
                             }
                             #endregion
-
-                           
-
                             #region Original if else decisde
                             if (is_edge == 0)
                             {
@@ -410,7 +411,7 @@ namespace WindowsFormsApp4
                                         {
                                             int second_area = 0;//caluate how many squre >10 peak in 7x7 squre
                                             int sum = get_Negative_value(ref ans7x7, ref second_area);
-                                            if (sum < -40)
+                                            if (sum < -50)
                                             {
                                                 class_array[5, 0]++;
                                                 class_array[3, 0]++;
@@ -646,7 +647,30 @@ namespace WindowsFormsApp4
             }
             return ans;
         }
-       
+        List<double> get_arround(ref Sensor_data[,] s_data, int row, int col, double max,double min)
+        {
+            List<double> ans = new List<double>();
+            for (int y = -2; y <= +2; ++y)
+            {
+                for (int x = -2; x <= +2; ++x)
+                {
+                    int tr = row + y;
+                    int tc = col + x;
+                    if (!Sensor_data.BoundaryCheck(tr, tc))
+                    {
+                        ans.Add(0);
+                    }
+                    else
+                    {
+                        double sig = (get_date(ref s_data, tr, tc).value -min)/(max-min)*2-1;
+                        //*bp = (sig <= 0)? 0: sig;
+                        ans.Add(sig);
+                    }
+
+                }
+            }
+            return ans;
+        }
         List<short> get_arround_sharp(ref Sensor_data[,] s_data, bool edge_converlution,int row, int col)
         {
             List<short> ans = new List<short>();
