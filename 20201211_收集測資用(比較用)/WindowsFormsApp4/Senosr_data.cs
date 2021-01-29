@@ -16,6 +16,8 @@ namespace WindowsFormsApp4
         {
             Hand, Water
         }
+        public int area_label_C = 0;
+        public int area_label_N = 0;
         public int area_label = 0; //if bigger than  threshold : 1 
         public int area_size = 0;// area size 
         public short value = 0;
@@ -32,8 +34,10 @@ namespace WindowsFormsApp4
             this.position_r = position_r;
             this.draw_color = Node.GrayTonew_color_V(value + 127);
         }
-        public Sensor_data(short value, bool is_peak, int position_r, int position_c, int area_label, int area_size) : this(value, is_peak, position_r, position_c)
+        public Sensor_data(short value, bool is_peak, int position_r, int position_c, int area_label, int area_label_N,int area_label_C, int area_size) : this(value, is_peak, position_r, position_c)
         {
+            this.area_label_C = area_label_C;
+            this.area_label_N = area_label_N;
             this.area_label = area_label;
             this.area_size = area_size;
         }

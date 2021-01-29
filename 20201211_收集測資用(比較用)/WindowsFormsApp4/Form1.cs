@@ -79,22 +79,28 @@ namespace WindowsFormsApp4
             }
         }
         bool record = false;
-        public const int r = 35, c = 46;
+        public static int r = 35, c = 46;
         public static int peak = 38;
+        public static int upper = 10, down = -10;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
-        Sensor_data[,] data = new Sensor_data[r, c];
+        Sensor_data[,] data;
         int p_w;
         int p_h;
         Car car = new Car(0, 0, 0, 0, false, new List<Point>());
         state Now_state = state.Normal;
         List<Point> Draw_point = new List<Point>();
-        int[,] class_array = new int[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
-        int[,] score_range = new int[,] { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
         StreamWriter csv_swriter;
         StreamWriter csv_all_swriter;
         StreamWriter csv_bitmap_swriter;
-
+        bool have_peak;
+        Thread save_t;
+        List<Touch_point> Alternative = new List<Touch_point>();
+        List<save_frame> save_frames = new List<save_frame>();
+        List<area> area_size_set = new List<area>();
+        List<area> area_N_size_set = new List<area>();
+        List<area> area_C_size_set = new List<area>();
+        bool Save_all = false;
         string data_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\";
 
         int frame_id = 0;
@@ -118,21 +124,15 @@ namespace WindowsFormsApp4
             //this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
             //  this.TopMost = true;
-            // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_10_資料還沒旋轉的(目前主要測試用)\month_12_day_8_time_11_27\ckpt\weight.csv");
-            // supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_14_拿掉Palm做拇指按壓測試\month_12_day_11_time_17_26\ckpt\weight.csv");
-            //supervised = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_15_time_20_48\ckpt\weight.csv");
-            // supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\month_12_day_23_time_11_29\ckpt\weight.csv");
-            //supervised_Hao_one = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net\month_12_day_16_time_15_59\ckpt\weight.csv");
-            // supervised_Hao_two = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201215 Level1 Binary Cross Entropy Hao Net(2)\month_12_day_21_time_15_34\ckpt\weight.csv");
-
 
         }
         Thread t;
-
+        Socket socket;
+        bool is_first = true;
         private void Form1_Load(object sender, EventArgs e)
         {
             EndPoint IP;
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             IPEndPoint server_ad = new IPEndPoint(IPAddress.Any, 5098);
             socket.Bind(server_ad);
             t = new Thread(new ThreadStart(delegate { callback_method(socket); }));
@@ -206,7 +206,7 @@ namespace WindowsFormsApp4
 
             this.KeyPreview = true;
             pic1_size = new Size(pictureBox1.Width, pictureBox1.Height);
-            pic2_size = new Size(pictureBox2.Width, pictureBox2.Height);
+          
 
             Directory.CreateDirectory(nH_save_path);
             Directory.CreateDirectory(H_save_path);
@@ -233,15 +233,6 @@ namespace WindowsFormsApp4
             save_t = new Thread(new ThreadStart(save_picture));
             save_t.Start();
         }
-
-        bool have_peak;
-        int supervised_num = 0;
-        Thread save_t;
-        List<Touch_point> now_can_out_Point = new List<Touch_point>();
-        List<Touch_point> Alternative = new List<Touch_point>();
-        List<save_frame> save_frames = new List<save_frame>();
-        List<area> area_size_set = new List<area>();
-        bool Save_all = false;
         void callback_method(Socket sc)
         {
             int frame_number = 0;
@@ -249,31 +240,67 @@ namespace WindowsFormsApp4
             Stopwatch sw = new Stopwatch();
             while (true)
             {
-                //sw.Reset();
-                //sw.Start();
+              
                 int dataLength;
                 byte[] myBufferBytes = new byte[100000];
                 dataLength = sc.Receive(myBufferBytes);
+                if (is_first)
+                {
+                    switch (dataLength)
+                    {
+                        case 3220://p3029
+                            r = 35;
+                            c = 46;
+                            data = new Sensor_data[35, 46];
+                            break;
+                        case 6450://p3022
+                            r = 43;
+                            c = 75;
+                            data = new Sensor_data[43, 75];
+                            break;
+                        case 3520://p3023
+                            r = 32;
+                            c = 55;
+                            data = new Sensor_data[32, 55];
+                            break;
+                        case 1380://p3029
+                            r = 23;
+                            c = 30;
+                            data = new Sensor_data[23, 30];
+                            break;
+                        default:
+                            break;
+                    }
+                    
+                    is_first = false;
+                }
+                
                 frame_number++;
                 int now_r = 0, now_c = 0;
+    
                 for (int i = 0; i < dataLength; i = i + 2)
                 {
                     Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
-                    data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c, (ans > Form1.peak-1) ? 1 : 0, 0); //add label and area size initliaize
+                    
+                    data[now_r, now_c] = new Sensor_data(ans, false, now_r, now_c,(ans>Form1.peak-1)?1:0 , (ans > upper ||ans< down) ? 1 : 0, (ans > upper + 10 || ans < down) ? 1 : 0, 0); //add label and area size initliaize
                     now_r = (now_c == c - 1) ? now_r + 1 : now_r;
                     now_c = (now_c == c - 1) ? 0 : now_c + 1;
                 }
+              
                 if (Save_all)
                 {
                     csv_class.write_all_csv(ref csv_all_swriter, ref data, r, c);
                     csv_class.write_bitmap_csv(ref csv_bitmap_swriter, ref data, r, c);
-
                 }
                 frame_id++;
                 List<Save_data> sl = new List<Save_data>();
                 int label = 2;
+                int label_N = 2;
+                int label_C = 2;
                 List<Point> peak = new List<Point>();
                 area_size_set.Clear();
+                area_N_size_set.Clear();
+                area_C_size_set.Clear();
                 for (int i = 0; i < r; ++i)
                 {
                     for (int j = 0; j < c; ++j)
@@ -283,11 +310,35 @@ namespace WindowsFormsApp4
 
                             List<short> ans = get_arround(ref data, i, j);
                             area area = new area(0);
-
-                            if (data[i, j].area_label == 1) //caluate area if is label == 1
+                            area area_N = new area(0);
+                            area area_C = new area(0);
+                            //  Console.WriteLine(data[i, j].value+" " +data[i,j].area_label);
+                            if (data[i, j].area_label_N == 1) //caluate area if is label == 1
                             {
 
-                                seed_filling(ref data, j, i, label, ref area);
+                                seed_filling_N(ref data, j, i, label_N, ref area_N);
+                                area_N_size_set.Add(area_N);
+                                label_N++;
+                            }
+                            else //already caluate area 
+                            {
+                                area_N = area_N_size_set[data[i, j].area_label_N - 2];
+                            }
+                            //if (data[i, j].area_label_C == 1) //caluate area if is label == 1
+                            //{
+
+                            //    seed_filling_C(ref data, j, i, label_C, ref area_C);
+                            //    area_C_size_set.Add(area_C);
+                            //    label_C++;
+                            //}
+                            //else //already caluate area 
+                            //{
+                            //    area_C = area_C_size_set[data[i, j].area_label_C - 2];
+                            //}
+                            if (data[i, j].area_label == 1) //caluate area if is label == 1
+                            {
+                             //   Console.WriteLine("xxx");
+                               seed_filling(ref data, j, i, label, ref area);
                                 area_size_set.Add(area);
                                 label++;
                             }
@@ -299,7 +350,7 @@ namespace WindowsFormsApp4
                             ans = get_arround7x7(ref data, i, j);
                             int second_area = 0;
                             int sum = get_Negative_value(ref ans, ref second_area);
-                            sl.Add(new Save_data(ans.ToArray(), frame_id, data_path + "Picture", area.size, bevel_edge_lenght, j, i, second_area));
+                            sl.Add(new Save_data(ans.ToArray(), frame_id, data_path + "Picture", area.size, bevel_edge_lenght, j, i, area_N.size));
                             have_peak = true;
                             peak.Add(new Point(j, i));
                             record_number++;
@@ -355,7 +406,33 @@ namespace WindowsFormsApp4
             }
             return sum;
         }
-        static void seed_filling(ref Sensor_data[,] pixel, int x, int y, int label, ref area area_size)
+        void seed_filling_N(ref Sensor_data[,] pixel, int x, int y, int label, ref area area_size)
+        {
+            pixel[y, x].area_label_N = label;
+            area_size.size++;
+            for (int i = 0; i < 8; i++)
+            {
+                if (dirY[i] + y >= 0 && dirY[i] + y < Form1.r && dirX[i] + x >= 0 && dirX[i] + x < Form1.c && pixel[dirY[i] + y, dirX[i] + x].area_label_N == 1)
+                {
+                    pixel[dirY[i] + y, dirX[i] + x].area_label_N = label;
+                    seed_filling_N(ref pixel, dirX[i] + x, dirY[i] + y, label, ref area_size);
+                }
+            }
+        }
+        void seed_filling_C(ref Sensor_data[,] pixel, int x, int y, int label, ref area area_size)
+        {
+            pixel[y, x].area_label_C = label;
+            area_size.size++;
+            for (int i = 0; i < 8; i++)
+            {
+                if (dirY[i] + y >= 0 && dirY[i] + y < Form1.r && dirX[i] + x >= 0 && dirX[i] + x < Form1.c && pixel[dirY[i] + y, dirX[i] + x].area_label_C == 1)
+                {
+                    pixel[dirY[i] + y, dirX[i] + x].area_label_C = label;
+                    seed_filling_C(ref pixel, dirX[i] + x, dirY[i] + y, label, ref area_size);
+                }
+            }
+        }
+        void seed_filling(ref Sensor_data[,] pixel, int x, int y, int label, ref area area_size)
         {
             pixel[y, x].area_label = label;
             area_size.size++;
@@ -380,7 +457,6 @@ namespace WindowsFormsApp4
                 }
             }
         }
-
         void save_picture()
         {
             while (true)
@@ -407,7 +483,6 @@ namespace WindowsFormsApp4
                 }
             }
         }
-
         Sensor_data get_date(ref Sensor_data[,] s_data, int row, int col)
         {
             return s_data[row, col];
@@ -458,13 +533,7 @@ namespace WindowsFormsApp4
             }
             return ans;
         }
-        bool check_in_car(int row, int col)
-        {
-            int car_row = car.draw_sub_point[car.index].Y / p_h;
-            int car_col = car.draw_sub_point[car.index].X / p_w;
-            bool inside = Math.Sqrt(Math.Pow(row - car_row, 2) + Math.Pow(col - car_col, 2)) < 1.6 ? true : false;
-            return inside;
-        }
+       
         public enum compare
         {
             more, more_equal
@@ -503,6 +572,272 @@ namespace WindowsFormsApp4
             return true;
         }
 
+        Size pic1_size;
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+
+            switch (e.KeyData)
+            {
+                case Keys.A:
+                    MessageBox.Show(this.Size.Width + " " + this.Size.Height);
+                    break;
+
+                case Keys.NumPad4:
+                    pic1_size = new Size(pictureBox1.Size.Width - 1, pictureBox1.Size.Height);
+                    //update_size = true;
+                    break;
+                case Keys.NumPad6:
+                    pic1_size = new Size(pictureBox1.Size.Width + 1, pictureBox1.Size.Height);
+                    //  update_size = true;
+                    break;
+                case Keys.NumPad2:
+                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height + 1);
+                    // update_size = true;
+                    break;
+                case Keys.NumPad8:
+                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height - 1);
+                    //  update_size = true;
+                    break;
+                case Keys.S:
+                    Save_all = true;
+                    break;
+                case Keys.C:
+
+                    break;
+                case Keys.H:
+                    record = !record;
+
+                    //   record_lbox.Items.Clear();
+                    DateTime saveNow = DateTime.Now;
+
+                    break;
+                case Keys.E:
+                    Draw_point.Clear();
+                    //ans_lb.Text = "ans : " + string.Format("{.2f}", (record_lbox.Items.Count / (double)(record_lbox.Items.Count + no_record_lbox.Items.Count)) * 100.0);
+                    //  no_record_lbox.Items.Clear();
+                    //record_lbox.Items.Clear();
+
+                    break;
+                case Keys.D:
+                    Now_state = state.draw;
+                    Draw_point.Clear();
+                    break;
+                case Keys.R:
+                    t.Abort();
+                    t = new Thread(new ThreadStart(delegate { get_max_min(socket); }));
+                    t.Start();
+                    break;
+                default:
+                    break;
+            }
+          
+            //  pictureBox1.Invalidate();
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            csv_swriter.Flush();
+            csv_swriter.Close();
+            System.Environment.Exit(System.Environment.ExitCode);
+        }
+
+        private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
+        {
+
+            if (e.Button == MouseButtons.Left)
+            {
+                Node node = new Node(e.X / p_w, e.Y / p_h, e.Y / p_h, e.X / p_w);
+                big_node.Add(node);
+                var st = "r: {0} c: {1}";
+                st = String.Format(st, node.r, node.c);
+                //   node_lbox.Items.Add(st);
+            }
+            //  pictureBox2.Invalidate();
+        }
+
+        private void pictureBox2_Paint(object sender, PaintEventArgs e)
+        {
+            if (!is_first)
+            {
+                Graphics g = e.Graphics;
+                switch (Now_state)
+                {
+                    case state.Normal:
+                        if (big_node.Count != 0)
+                        {
+                            for (int i = 0; i < big_node.Count; i++)
+                            {
+                                g.DrawEllipse(new Pen(Color.Blue, 2), new Rectangle(big_node[i].X * p_w, big_node[i].Y * p_h, p_w, p_h));
+                                if (i < big_node.Count - 1)
+                                {
+                                    Point start = new Point(big_node[i].X * p_w + p_w / 2, big_node[i].Y * p_h + p_h / 2);
+                                    Point end = new Point(big_node[i + 1].X * p_w + p_w / 2, big_node[i + 1].Y * p_h + p_h / 2);
+                                    g.DrawLine(new Pen(Color.Yellow), start, end);
+                                }
+                            }
+                        }
+                        if (car.can_go)
+                        {
+                            g.DrawArc(new Pen(Color.Red), new Rectangle((int)(car.draw_sub_point[car.index].X - 1.5 * p_w),
+                                (int)(car.draw_sub_point[car.index].Y - 1.5 * p_h), p_w * 3, p_h * 3), 0, 360);
+                        }
+                        break;
+                    case state.draw:
+                        int count = Alternative.Count;
+                        if (count > 0)
+                        {
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Alternative[i].draw_point.Count != 0)
+                                {
+                                    for (int j = 0; j < Alternative[i].draw_point.Count; j++)
+                                    {
+                                        g.DrawArc(new Pen(Alternative[i].color, 5), new Rectangle((int)(Alternative[i].draw_point[j].X - p_w / 3),
+                                            (int)(Alternative[i].draw_point[j].Y - p_h / 3), p_w / 3 * 2, p_h / 3 * 2), 0, 360);
+                                    }
+                                    if (Alternative[i].draw_point.Count > 3)
+                                    {
+                                        g.DrawCurve(new Pen(Alternative[i].color, 5), Alternative[i].draw_point.ToArray());
+                                    }
+                                }
+
+                            }
+
+                        }
+                        for (int i = 0; i < 256; i++)
+                        {
+                            g.DrawRectangle(new Pen(Node.GrayTonew_color_V(i)), new Rectangle(10, 30 + i * 2, 20, 2));
+
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            if (!is_first)
+            {
+                Graphics g = e.Graphics;
+                p_w = pictureBox1.Width / c;
+                p_h = pictureBox1.Height / r;
+                switch (Now_state)
+                {
+                    case state.Normal:
+                        int row = 0, col = 0;
+                        for (int i = 0; i < data.Length; i++)
+                        {
+                            if (data[row, col] != null)
+                            {
+                                String drawString = data[row, col].value.ToString();
+
+                                Font drawFont = new Font("Arial", 8);
+                                SolidBrush drawBrush = new SolidBrush(Color.Black);
+                                if (data[row, col].area_label_C > 1)
+                                {
+                                    g.FillRectangle(new SolidBrush(Rand_color[data[row, col].area_label_C]), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                }
+                                else
+                                    g.FillRectangle(new SolidBrush(data[row, col].draw_color), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                if (data[row, col].is_peak)
+                                    g.DrawEllipse(new Pen((data[row, col].Class == Sensor_data.AI_class.Water) ? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
+                                //if (i == 0)
+                                //{
+                                //    g.DrawString(frame_id.ToString(), drawFont, drawBrush, new PointF(0 * p_w + (p_w / 3), 0 * p_h + (p_h / 3)));
+                                //}else
+                                g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
+
+                                row = (col == c - 1) ? row + 1 : row;
+                                col = (col == c - 1) ? 0 : col + 1;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        //for (int i = 0; i < area_size_set.Count; i++)
+                        //{
+                        //    g.DrawLine(new Pen(Color.Red, 2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
+                        //        area_size_set[i].max_x * p_w + (p_w / 3), area_size_set[i].max_y * p_h + (p_h / 3));
+                        //    // Console.WriteLine(String.Format("{0} {1} {2} {3}", area_size_set[i].min_x, area_size_set[i].min_y, area_size_set[i].max_x, area_size_set[i].max_y));
+                        //}
+                        for (int i = 0; i <= r; i++)
+                        {
+                            g.DrawLine(new Pen(Color.Black), 0, i * p_h, p_w * c, i * p_h);
+
+                        }
+                        for (int j = 0; j <= c; j++)
+                        {
+                            g.DrawLine(new Pen(Color.Black), j * p_w, 0, j * p_w, p_h * r);
+                        }
+                        break;
+                    case state.draw:
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+        }
+        private Vector3 cross(Vector3 left, Vector3 right)
+        {
+            Vector3 ans;
+            ans.x = left.y * right.z - left.z * right.y;
+            ans.y = left.z * right.x - left.x * right.z;
+            ans.z = left.x * right.y - left.y * right.x;
+            return ans;
+        }
+        private void get_max_min(Socket sc)
+        {
+            int times = 0;
+            int _u=0, _d = 0;
+            while (times++ < 200)
+            {
+                int dataLength;
+                byte[] myBufferBytes = new byte[100000];
+                dataLength = sc.Receive(myBufferBytes);
+               
+             
+                int Negative_ = 0, Positive_ = 0;
+                for (int i = 0; i < dataLength; i = i + 2)
+                {
+                    Int16 ans = (Int16)((byte)myBufferBytes[i] << 8 | (byte)myBufferBytes[i + 1]);
+                    if (ans > 0)
+                    {
+                        if (Positive_ < ans)
+                        {
+                            Positive_ = ans;
+                        }
+                    }
+                    else
+                    {
+                        if (Negative_ > ans)
+                        {
+                            Negative_ = ans;
+                        }
+                    }
+                   
+                }
+
+                _u += Positive_;
+                _d += Negative_;
+               
+            }
+            Console.WriteLine(_u / 200 + " " + _d / 200);
+            
+            t = new Thread(new ThreadStart(delegate { callback_method(socket); }));
+            t.Start();
+        }
+        bool check_in_car(int row, int col)
+        {
+            int car_row = car.draw_sub_point[car.index].Y / p_h;
+            int car_col = car.draw_sub_point[car.index].X / p_w;
+            bool inside = Math.Sqrt(Math.Pow(row - car_row, 2) + Math.Pow(col - car_col, 2)) < 1.6 ? true : false;
+            return inside;
+        }
         private List<Point> get_sub_point(List<Node> node_list)
         {
             List<Point> sub_path = new List<Point>();
@@ -598,213 +933,6 @@ namespace WindowsFormsApp4
             }
             return sub_path;
         }
-        Size pic1_size, pic2_size;
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-
-            switch (e.KeyData)
-            {
-                case Keys.A:
-                    MessageBox.Show(this.Size.Width + " " + this.Size.Height);
-                    break;
-
-                case Keys.NumPad4:
-                    pic1_size = new Size(pictureBox1.Size.Width - 1, pictureBox1.Size.Height);
-                    //update_size = true;
-                    break;
-                case Keys.NumPad6:
-                    pic1_size = new Size(pictureBox1.Size.Width + 1, pictureBox1.Size.Height);
-                    //  update_size = true;
-                    break;
-                case Keys.NumPad2:
-                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height + 1);
-                    // update_size = true;
-                    break;
-                case Keys.NumPad8:
-                    pic1_size = new Size(pictureBox1.Size.Width, pictureBox1.Size.Height - 1);
-                    //  update_size = true;
-                    break;
-                case Keys.S:
-                    Save_all = true;
-                    break;
-                case Keys.C:
-
-                    break;
-                case Keys.H:
-                    record = !record;
-
-                    //   record_lbox.Items.Clear();
-                    DateTime saveNow = DateTime.Now;
-
-                    break;
-                case Keys.E:
-                    Draw_point.Clear();
-                    //ans_lb.Text = "ans : " + string.Format("{.2f}", (record_lbox.Items.Count / (double)(record_lbox.Items.Count + no_record_lbox.Items.Count)) * 100.0);
-                    //  no_record_lbox.Items.Clear();
-                    //record_lbox.Items.Clear();
-
-                    break;
-                case Keys.D:
-                    Now_state = state.draw;
-                    Draw_point.Clear();
-                    break;
-                default:
-                    break;
-            }
-            pic2_size = new Size(pic1_size.Width, pic1_size.Height);
-            //  pictureBox1.Invalidate();
-        }
-
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            csv_swriter.Flush();
-            csv_swriter.Close();
-            System.Environment.Exit(System.Environment.ExitCode);
-        }
-
-        private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
-        {
-
-            if (e.Button == MouseButtons.Left)
-            {
-                Node node = new Node(e.X / p_w, e.Y / p_h, e.Y / p_h, e.X / p_w);
-                big_node.Add(node);
-                var st = "r: {0} c: {1}";
-                st = String.Format(st, node.r, node.c);
-                //   node_lbox.Items.Add(st);
-            }
-            //  pictureBox2.Invalidate();
-        }
-
-        private void pictureBox2_Paint(object sender, PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-            switch (Now_state)
-            {
-                case state.Normal:
-                    if (big_node.Count != 0)
-                    {
-                        for (int i = 0; i < big_node.Count; i++)
-                        {
-                            g.DrawEllipse(new Pen(Color.Blue, 2), new Rectangle(big_node[i].X * p_w, big_node[i].Y * p_h, p_w, p_h));
-                            if (i < big_node.Count - 1)
-                            {
-                                Point start = new Point(big_node[i].X * p_w + p_w / 2, big_node[i].Y * p_h + p_h / 2);
-                                Point end = new Point(big_node[i + 1].X * p_w + p_w / 2, big_node[i + 1].Y * p_h + p_h / 2);
-                                g.DrawLine(new Pen(Color.Yellow), start, end);
-                            }
-                        }
-                    }
-                    if (car.can_go)
-                    {
-                        g.DrawArc(new Pen(Color.Red), new Rectangle((int)(car.draw_sub_point[car.index].X - 1.5 * p_w),
-                            (int)(car.draw_sub_point[car.index].Y - 1.5 * p_h), p_w * 3, p_h * 3), 0, 360);
-                    }
-                    break;
-                case state.draw:
-                    int count = Alternative.Count;
-                    if (count > 0)
-                    {
-                        for (int i = 0; i < count; i++)
-                        {
-                            if (Alternative[i].draw_point.Count != 0)
-                            {
-                                for (int j = 0; j < Alternative[i].draw_point.Count; j++)
-                                {
-                                    g.DrawArc(new Pen(Alternative[i].color, 5), new Rectangle((int)(Alternative[i].draw_point[j].X - p_w / 3),
-                                        (int)(Alternative[i].draw_point[j].Y - p_h / 3), p_w / 3 * 2, p_h / 3 * 2), 0, 360);
-                                }
-                                if (Alternative[i].draw_point.Count > 3)
-                                {
-                                    g.DrawCurve(new Pen(Alternative[i].color, 5), Alternative[i].draw_point.ToArray());
-                                }
-                            }
-
-                        }
-
-                    }
-                    for (int i = 0; i < 256; i++)
-                    {
-                        g.DrawRectangle(new Pen(Node.GrayTonew_color_V(i)), new Rectangle(10, 30 + i * 2, 20, 2));
-
-                    }
-
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void pictureBox1_Paint(object sender, PaintEventArgs e)
-        {
-
-            Graphics g = e.Graphics;
-            p_w = pictureBox1.Width / c;
-            p_h = pictureBox1.Height / r;
-            switch (Now_state)
-            {
-                case state.Normal:
-                    int row = 0, col = 0;
-                    for (int i = 0; i < data.Length; i++)
-                    {
-                        if (data[row, col] != null)
-                        {
-                            String drawString = data[row, col].value.ToString();
-
-                            Font drawFont = new Font("Arial", 8);
-                            SolidBrush drawBrush = new SolidBrush(Color.Black);
-                            if (data[row, col].area_label > 1)
-                            {
-                                g.FillRectangle(new SolidBrush(Rand_color[data[row, col].area_label]), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
-                            }
-                            else
-                                g.FillRectangle(new SolidBrush(data[row, col].draw_color), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
-                            if (data[row, col].is_peak)
-                                g.DrawEllipse(new Pen((data[row, col].Class == Sensor_data.AI_class.Water) ? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
-                            //if (i == 0)
-                            //{
-                            //    g.DrawString(frame_id.ToString(), drawFont, drawBrush, new PointF(0 * p_w + (p_w / 3), 0 * p_h + (p_h / 3)));
-                            //}else
-                            g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
-
-                            row = (col == c - 1) ? row + 1 : row;
-                            col = (col == c - 1) ? 0 : col + 1;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    for (int i = 0; i < area_size_set.Count; i++)
-                    {
-                        g.DrawLine(new Pen(Color.Red, 2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
-                            area_size_set[i].max_x * p_w + (p_w / 3), area_size_set[i].max_y * p_h + (p_h / 3));
-                        // Console.WriteLine(String.Format("{0} {1} {2} {3}", area_size_set[i].min_x, area_size_set[i].min_y, area_size_set[i].max_x, area_size_set[i].max_y));
-                    }
-                    for (int i = 0; i <= r; i++)
-                    {
-                        g.DrawLine(new Pen(Color.Black), 0, i * p_h, p_w * c, i * p_h);
-
-                    }
-                    for (int j = 0; j <= c; j++)
-                    {
-                        g.DrawLine(new Pen(Color.Black), j * p_w, 0, j * p_w, p_h * r);
-                    }
-                    break;
-                case state.draw:
-                    break;
-                default:
-                    break;
-
-            }
-        }
-        private Vector3 cross(Vector3 left, Vector3 right)
-        {
-            Vector3 ans;
-            ans.x = left.y * right.z - left.z * right.y;
-            ans.y = left.z * right.x - left.x * right.z;
-            ans.z = left.x * right.y - left.y * right.x;
-            return ans;
-        }
+    
     }
 }
