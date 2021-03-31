@@ -96,7 +96,7 @@ namespace WindowsFormsApp4
         }
         bool record = false;
         public static int r = 43, c =75;
-        public int peak = 15;
+        public int peak = 38;
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data;// = new Sensor_data[r, c];
@@ -310,8 +310,8 @@ namespace WindowsFormsApp4
                         {
 
                           //  List<double> ans_n = get_arround(ref data, i, j,30,-30);
-                            List<short> ans = get_arround(ref data, i, j, 3.3);
-                            List<short> ans7x7 = get_arround7x7(ref data, i, j,3.3);
+                            List<short> ans = get_arround(ref data, i, j);
+                            List<short> ans7x7 = get_arround7x7(ref data, i, j);
                             area area = new area(0);
                             int is_edge = (i < 2 || j < 2 || i > r - 2 || j > c - 2) ? 1 : 0;
                             int edge_level = -1;
