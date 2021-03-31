@@ -81,7 +81,7 @@ namespace WindowsFormsApp4
         bool record = false;
         public static int r = 35, c = 46;
         public static int peak = 38;
-        public static int upper = 10, down = -10;
+        public static int upper = 10, down = -10;  //Second Bitmap Upper and Down
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data;
@@ -287,7 +287,7 @@ namespace WindowsFormsApp4
                     now_c = (now_c == c - 1) ? 0 : now_c + 1;
                 }
               
-                if (Save_all)
+                if (Save_all)//跑C302收集資料用
                 {
                     csv_class.write_all_csv(ref csv_all_swriter, ref data, r, c);
                     csv_class.write_bitmap_csv(ref csv_bitmap_swriter, ref data, r, c);
