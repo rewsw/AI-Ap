@@ -81,7 +81,7 @@ namespace WindowsFormsApp4
         bool record = false;
         public static int r = 35, c = 46;
         public static int peak = 38;
-        public static int upper = 10, down = -10;  //Second Bitmap Upper and Down
+        public static int upper = 20, down = -8;  //Second Bitmap Upper and Down
         List<Node> big_node = new List<Node>();
         //List<Sensor_data> data = new List<Sensor_data>();
         Sensor_data[,] data;
@@ -102,9 +102,8 @@ namespace WindowsFormsApp4
         List<area> area_C_size_set = new List<area>();
         bool Save_all = false;
         string data_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\";
-
+        AI supervised_ori;
         int frame_id = 0;
-        DataTable dt;
         string H_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\Picture";
         string nH_save_path = System.Windows.Forms.Application.StartupPath + @"\\" + "2020_" + DateTime.Now.Month.ToString() + "_" + DateTime.Now.Day.ToString() + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "\\nH";
         public Form1()
@@ -116,14 +115,13 @@ namespace WindowsFormsApp4
 
                 Rand_color[i] = Color.FromArgb(rand.Next(0, 125), rand.Next(0, 254), rand.Next(0, 100));
             }
-            Console.WriteLine(Rand_color[0].R + " " + Rand_color[0].G + " " + Rand_color[0].B);
-
-            Console.WriteLine(Rand_color[1].R + " " + Rand_color[1].G + " " + Rand_color[1].B);
+           
             #endregion
             InitializeComponent();
             //this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
             //  this.TopMost = true;
+            supervised_ori = new AI(@"\\10.1.2.88\jack2\David\AI\NN\20201207 Level1 Binary Cross entropy\2020_12_23增加大拇指資料做訓練\month_12_day_23_time_11_29\ckpt\weight.csv");
 
         }
         Thread t;
@@ -148,91 +146,43 @@ namespace WindowsFormsApp4
 
             Fps_lb.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.95));
 
-            dataGridView1.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.1));
-            dataGridView1.Size = new Size((int)(this.Width * 0.15), (int)(this.Height * 0.6));
-
-            dataGridView2.Location = new Point((int)(this.Size.Width * 0.85), (int)(this.Height * 0.75));
-            dataGridView2.Size = new Size((int)(this.Width * 0.15), (int)(this.Height * 0.2));
-
-            dataGridView1.ColumnCount = 3;
-            dataGridView1.RowCount = 11;
-            dataGridView1.RowHeadersVisible = false;
-            dataGridView1.ColumnHeadersVisible = false;
-            dataGridView1.Columns[0].Width = dataGridView1.Width / 3;
-            dataGridView1.Columns[1].Width = dataGridView1.Width / 3;
-            dataGridView1.Columns[2].Width = dataGridView1.Width / 3;
-            for (int i = 0; i < 11; i++)
-            {
-                dataGridView1.Rows[i].Height = dataGridView1.Height / 11 - 1;
-            }
-            double f = 0.0;
-            for (int i = 1; i < 11; i++)
-            {
-
-                dataGridView1.Rows[i].Cells[0].Value = f.ToString("F1") + " ~ " + (f + 0.1).ToString("F1");
-                f += 0.1;
-            }
-            dataGridView1.DataSource = dt;
-            dataGridView1.Rows[0].Cells[0].Value = "數級";
-            dataGridView1.Rows[0].Cells[1].Value = "New";
-            dataGridView1.Rows[0].Cells[2].Value = "Ori";
-            dataGridView2.ColumnCount = 4;
-            dataGridView2.RowCount = 7;
+            dataGridView2.Location = new Point((int)(this.Size.Width * 0.84), (int)(this.Size.Height * 0.2));
+            dataGridView2.Size = new Size((int)(this.Size.Width * 0.145), (int)(this.Size.Height * 0.3));
+            dataGridView2.ColumnCount = 5;
+            dataGridView2.RowCount = 6;
             dataGridView2.RowHeadersVisible = false;
             dataGridView2.ColumnHeadersVisible = false;
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
-                dataGridView2.Columns[i].Width = dataGridView2.Width / 4 - 4;
+                dataGridView2.Columns[i].Width = dataGridView2.Width / 5-1 ;
             }
-            dataGridView2.Rows[0].Height = dataGridView2.Height / 7;
-            dataGridView2.Rows[1].Height = dataGridView2.Height / 7;
-            dataGridView2.Rows[2].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[3].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[4].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[5].Height = dataGridView2.Height / 7 - 1;
-            dataGridView2.Rows[6].Height = dataGridView2.Height / 7 - 1;
+            for (int i = 0; i < 6; i++)
+            {
+                dataGridView2.Rows[i].Height = dataGridView2.Height / 6-1;
+            }
 
-            dataGridView2.Rows[0].Cells[1].Value = "水";
-            dataGridView2.Rows[0].Cells[2].Value = "不定";
-            dataGridView2.Rows[0].Cells[3].Value = "手";
-
-            dataGridView2.Rows[1].Cells[0].Value = "數量(new)";
-            dataGridView2.Rows[2].Cells[0].Value = "<0.1 or >0.9";
-            dataGridView2.Rows[3].Cells[0].Value = "不定";
-            dataGridView2.Rows[4].Cells[0].Value = "數量(ori)";
-            dataGridView2.Rows[5].Cells[0].Value = "<0.1 or >0.9";
-            dataGridView2.Rows[6].Cells[0].Value = "不定";
+            dataGridView2.Rows[0].Cells[1].Value = "<0.3";
+            dataGridView2.Rows[0].Cells[2].Value = "Unknown";
+            dataGridView2.Rows[0].Cells[3].Value = ">0.95";
+            dataGridView2.Rows[0].Cells[3].Value = "All";
+            dataGridView2.Rows[1].Cells[0].Value = "Count";
+            
+            dataGridView2.Rows[3].Cells[0].Value = "Normal Area";
+            dataGridView2.Rows[2].Cells[1].Value = "Water";
+            dataGridView2.Rows[2].Cells[2].Value = "Hand";
+            dataGridView2.Rows[5].Cells[0].Value = "New Area";
+            dataGridView2.Rows[4].Cells[1].Value = "Water";
+            dataGridView2.Rows[4].Cells[2].Value = "Hand";
 
             this.KeyPreview = true;
             pic1_size = new Size(pictureBox1.Width, pictureBox1.Height);
           
 
-            Directory.CreateDirectory(nH_save_path);
-            Directory.CreateDirectory(H_save_path);
-            #region 新創csv
-            FileStream fs = new FileStream(data_path + "data.csv", FileMode.Create, FileAccess.Write);
-            StreamWriter sw = new StreamWriter(fs);
-            sw.Flush();
-            sw.Close();
-            fs.Close();
-            fs = new FileStream(data_path + "all.csv", FileMode.Create, FileAccess.Write);
-            sw = new StreamWriter(fs);
-            sw.Flush();
-            sw.Close();
-            fs.Close();
-            fs = new FileStream(data_path + "bitmap.csv", FileMode.Create, FileAccess.Write);
-            sw = new StreamWriter(fs);
-            sw.Flush();
-            sw.Close();
-            fs.Close();
-            #endregion
-            csv_swriter = new StreamWriter(data_path + "data.csv", true);
-            csv_all_swriter = new StreamWriter(data_path + "all.csv", true);
-            csv_bitmap_swriter = new StreamWriter(data_path + "bitmap.csv", true);
-            save_t = new Thread(new ThreadStart(save_picture));
-            save_t.Start();
+           
         }
+        int[] NN_Record_data = new int[] {0,0,0};
+        int[,] Area_pass = new int[,] { { 0, 0 }, { 0, 0 } };
         void callback_method(Socket sc)
         {
             int frame_number = 0;
@@ -240,10 +190,12 @@ namespace WindowsFormsApp4
             Stopwatch sw = new Stopwatch();
             while (true)
             {
-              
                 int dataLength;
                 byte[] myBufferBytes = new byte[100000];
                 dataLength = sc.Receive(myBufferBytes);
+
+                sw.Reset();
+                sw.Start();
                 if (is_first)
                 {
                     switch (dataLength)
@@ -312,32 +264,19 @@ namespace WindowsFormsApp4
                             area area = new area(0);
                             area area_N = new area(0);
                             area area_C = new area(0);
-                            //  Console.WriteLine(data[i, j].value+" " +data[i,j].area_label);
-                            if (data[i, j].area_label_N == 1) //caluate area if is label == 1
-                            {
-
-                                seed_filling_N(ref data, j, i, label_N, ref area_N);
-                                area_N_size_set.Add(area_N);
-                                label_N++;
-                            }
-                            else //already caluate area 
-                            {
-                                area_N = area_N_size_set[data[i, j].area_label_N - 2];
-                            }
-                            //if (data[i, j].area_label_C == 1) //caluate area if is label == 1
+                            double[] output_ori = supervised_ori.calculate(ans.ToArray());
+                            //if (data[i, j].area_label_N == 1) //caluate area if is label == 1
                             //{
-
-                            //    seed_filling_C(ref data, j, i, label_C, ref area_C);
-                            //    area_C_size_set.Add(area_C);
-                            //    label_C++;
+                            //    seed_filling_N(ref data, j, i, label_N, ref area_N);
+                            //    area_N_size_set.Add(area_N);
+                            //    label_N++;
                             //}
                             //else //already caluate area 
                             //{
-                            //    area_C = area_C_size_set[data[i, j].area_label_C - 2];
+                            //    area_N = area_N_size_set[data[i, j].area_label_N - 2];
                             //}
                             if (data[i, j].area_label == 1) //caluate area if is label == 1
                             {
-                             //   Console.WriteLine("xxx");
                                seed_filling(ref data, j, i, label, ref area);
                                 area_size_set.Add(area);
                                 label++;
@@ -346,14 +285,35 @@ namespace WindowsFormsApp4
                             {
                                 area = area_size_set[data[i, j].area_label - 2];
                             }
-                            double bevel_edge_lenght = Math.Sqrt(Math.Pow(area.min_x - area.max_x, 2) + Math.Pow(area.min_y - area.max_y, 2));
-                            ans = get_arround7x7(ref data, i, j);
-                            int second_area = 0;
-                            int sum = get_Negative_value(ref ans, ref second_area);
-                            sl.Add(new Save_data(ans.ToArray(), frame_id, data_path + "Picture", area.size, bevel_edge_lenght, j, i, area_N.size));
-                            have_peak = true;
-                            peak.Add(new Point(j, i));
-                            record_number++;
+                            if (output_ori[0] <= 0.3) //Just Water
+                            {
+                                data[i, j].Class = Sensor_data.AI_class.Water;
+                                NN_Record_data[0]++;
+                            }
+                            else if (output_ori[0] > 0.3 && output_ori[0] <= 0.95) //Fuzzy Region
+                            {
+                                NN_Record_data[1]++;
+                                if (area.size > 20) //if area > 20
+                                {
+                                    Area_pass[0, 0]++;
+                                }
+                                else {
+                                    Area_pass[0, 1]++;
+                                }
+                                if (area_N.size > 20) //if area > 20
+                                {
+                                    Area_pass[1, 0]++;
+                                }
+                                else
+                                {
+                                    Area_pass[1, 1]++;
+                                }
+                            }//Just Hand
+                            else
+                            {
+                                NN_Record_data[2]++;
+                            }
+
                         }
                     }
                 }
@@ -370,17 +330,25 @@ namespace WindowsFormsApp4
                     }
                     Save_all = false;
                 }
-                if (have_peak)
-                {
-                    save_frames.Add(new save_frame(sl.ToArray()));
-                    have_peak = false;
-                }
+                sw.Stop();
                 double fps = sw.ElapsedMilliseconds;
                 try
                 {
                     BeginInvoke(new MethodInvoker(() =>
                     {
-                        Fps_lb.Text = "Number number : " + record_number;
+                        Fps_lb.Text = fps.ToString();
+                        int sum_all = 0;
+                        for (int i = 0; i < 3; i++) {
+                            dataGridView2.Rows[1].Cells[i + 1].Value = NN_Record_data[i];
+                            sum_all += NN_Record_data[i];
+                        }
+                        dataGridView2.Rows[1].Cells[4].Value = sum_all;
+                        for (int i = 0; i < 2; i++) {
+                            dataGridView2.Rows[3].Cells[i + 1].Value = Area_pass[0,i];
+                        }
+                        for (int i = 0; i < 2; i++) {
+                            dataGridView2.Rows[5].Cells[i + 1].Value = Area_pass[1, i];
+                        }
                     }));
                 }
                 catch (InvalidOperationException ex)
@@ -676,11 +644,7 @@ namespace WindowsFormsApp4
                                 }
                             }
                         }
-                        if (car.can_go)
-                        {
-                            g.DrawArc(new Pen(Color.Red), new Rectangle((int)(car.draw_sub_point[car.index].X - 1.5 * p_w),
-                                (int)(car.draw_sub_point[car.index].Y - 1.5 * p_h), p_w * 3, p_h * 3), 0, 360);
-                        }
+                      
                         break;
                     case state.draw:
                         int count = Alternative.Count;
@@ -736,7 +700,7 @@ namespace WindowsFormsApp4
 
                                 Font drawFont = new Font("Arial", 8);
                                 SolidBrush drawBrush = new SolidBrush(Color.Black);
-                                if (data[row, col].area_label_C > 1)
+                                if (data[row, col].area_label > 1)
                                 {
                                     g.FillRectangle(new SolidBrush(Rand_color[data[row, col].area_label_C]), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
                                 }
@@ -744,10 +708,7 @@ namespace WindowsFormsApp4
                                     g.FillRectangle(new SolidBrush(data[row, col].draw_color), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
                                 if (data[row, col].is_peak)
                                     g.DrawEllipse(new Pen((data[row, col].Class == Sensor_data.AI_class.Water) ? Color.Blue : Color.Red, 2), new Rectangle(data[row, col].position_c * p_w, data[row, col].position_r * p_h, p_w, p_h));
-                                //if (i == 0)
-                                //{
-                                //    g.DrawString(frame_id.ToString(), drawFont, drawBrush, new PointF(0 * p_w + (p_w / 3), 0 * p_h + (p_h / 3)));
-                                //}else
+                              
                                 g.DrawString(drawString, drawFont, drawBrush, new PointF(col * p_w + (p_w / 3), row * p_h + (p_h / 3)));
 
                                 row = (col == c - 1) ? row + 1 : row;
@@ -758,12 +719,7 @@ namespace WindowsFormsApp4
                                 break;
                             }
                         }
-                        //for (int i = 0; i < area_size_set.Count; i++)
-                        //{
-                        //    g.DrawLine(new Pen(Color.Red, 2), area_size_set[i].min_x * p_w + (p_w / 3), area_size_set[i].min_y * p_h + (p_h / 3),
-                        //        area_size_set[i].max_x * p_w + (p_w / 3), area_size_set[i].max_y * p_h + (p_h / 3));
-                        //    // Console.WriteLine(String.Format("{0} {1} {2} {3}", area_size_set[i].min_x, area_size_set[i].min_y, area_size_set[i].max_x, area_size_set[i].max_y));
-                        //}
+                       
                         for (int i = 0; i <= r; i++)
                         {
                             g.DrawLine(new Pen(Color.Black), 0, i * p_h, p_w * c, i * p_h);
